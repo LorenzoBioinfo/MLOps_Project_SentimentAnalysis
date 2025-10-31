@@ -22,8 +22,7 @@ L’obiettivo è permettere a MachineInnovators Inc. di monitorare la reputazion
 ### **Fase 2 — Pipeline CI/CD**
 - Automazione di training, test e deploy tramite **GitHub Actions** e **Docker**
 
-### **Fase 3 — Deploy e Monitoraggio**
-- Deploy su **Hugging Face** (facoltativo)  
+### **Fase 3 — Deploy e Monitoraggio** 
 - Monitoraggio continuo con strumenti MLOps (es. MLflow)  
 
 ---
@@ -35,8 +34,14 @@ L’obiettivo è permettere a MachineInnovators Inc. di monitorare la reputazion
 | ML | FastText, Transformers, Scikit-learn |
 | CI/CD | GitHub Actions, Docker |
 | Deploy | Hugging Face Hub |
-| Monitoraggio | MLflow, Prometheus (opzionale) |
+| Monitoraggio | MLflow |
 
 ---
 
-## 📄 Struttura del Repository
+
+## 💡 Motivazione
+L’analisi automatica del sentiment consente una gestione più efficiente e reattiva della reputazione aziendale.  
+Con questo progetto, MachineInnovators Inc. integra soluzioni MLOps per una pipeline scalabile, affidabile e costantemente aggiornata.  
+
+---
+
