@@ -1,1 +1,3 @@
 env
+data/raw/tweet_eval_sentiment
+data/raw/youtube-comment-sentiment
