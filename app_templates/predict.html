@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Predici il Sentiment</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 flex flex-col items-center justify-center min-h-screen">
+    <h2 class="text-3xl font-semibold text-gray-800 mb-6">🧠 Testa il Modello con un tuo testo</h2>
+
+    <form method="post" class="bg-white rounded-2xl shadow-md p-6 w-3/4 text-center">
+        <textarea name="text" rows="3" class="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="Scrivi qui il tuo testo...">{{ text if text else "" }}</textarea>
+        <button type="submit" class="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Analizza Sentiment</button>
+    </form>
+
+    {% if result %}
+    <div class="mt-6 bg-white rounded-xl shadow p-4 w-3/4 text-center">
+        <p class="text-gray-700 text-lg mb-2">Risultato:</p>
+        <p class="text-2xl font-bold text-blue-600">{{ result.label }}</p>
+        <p class="text-sm text-gray-500 mt-1">Confidence: {{ result.confidence }}</p>
+    </div>
+    {% endif %}
+
+    <div class="mt-6">
+        <a href="/" class="text-blue-600 hover:underline">⬅️ Torna alla Home</a>
+    </div>
+</body>
+</html>
