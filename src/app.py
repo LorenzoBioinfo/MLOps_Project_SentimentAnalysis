@@ -7,6 +7,7 @@ from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from datasets import load_dataset, load_from_disk
 import torch
 import random
+import subprocess
 
 # Caricamento del modello e dei dati se già scaricati
 MODEL= "cardiffnlp/twitter-roberta-base-sentiment-latest"
@@ -20,23 +21,18 @@ model = AutoModelForSequenceClassification.from_pretrained(MODEL)
 labels = ["negative", "neutral", "positive"]
 
 
-if not os.path.exists(TWEET_PROCESSED_PATH):
-    tweet_eval = load_dataset("tweet_eval", "sentiment")
-    raise FileNotFoundError(
-        f"Dati non trovati in {TWEET_PROCESSED_PATH}. "
-        "Esegui src/data_preparation.py per crearlo."
-    ) 
 
+# TWEET EVAL
+if not os.path.exists(TWEET_PROCESSED_PATH):
+    print(f"Dataset Tweet Eval non trovato in {TWEET_PROCESSED_PATH}. Lo genero...")
+    subprocess.run(["python", "src/data_preparation.py", "tweet_eval"], check=True)
 tweet_eval = load_from_disk(TWEET_PROCESSED_PATH)
 
 
+# YOUTUBE COMMENTS
 if not os.path.exists(YT_PROCESSED_PATH):
-    youtube_ds = load_dataset("AmaanP314/youtube-comment-sentiment")
-    raise FileNotFoundError(
-        f"Dati non trovati in {YT_PROCESSED_PATH}. "
-        "Esegui src/data_preparation.py per crearlo."
-    ) 
-
+    print(f" Dataset YouTube non trovato in {YT_PROCESSED_PATH}. Lo genero...")
+    subprocess.run(["python", "src/data_preparation.py", "youtube"], check=True)
 youtube_ds = load_from_disk(YT_PROCESSED_PATH)
 
 app = FastAPI(
