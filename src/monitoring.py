@@ -45,8 +45,19 @@ def retrain_on_youtube_sample():
 
 def main():
     print("Caricamento del modello")
-    model = AutoModelForSequenceClassification.from_pretrained(MODEL_PATH)
-    tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
+
+    if os.path.exists(MODEL_PATH):
+        model = AutoModelForSequenceClassification.from_pretrained(MODEL_PATH)
+        tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
+    else:
+        print("⚠️ Modello locale non trovato. Uso modello pre-addestrato di default.")
+        model = AutoModelForSequenceClassification.from_pretrained(
+            "cardiffnlp/twitter-roberta-base-sentiment-latest"
+        )
+        tokenizer = AutoTokenizer.from_pretrained(
+            "cardiffnlp/twitter-roberta-base-sentiment-latest"
+        )
+
     model.eval()
 
     tweet_ds = load_from_disk(TWEET_PATH)
