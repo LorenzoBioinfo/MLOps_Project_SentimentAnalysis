@@ -73,11 +73,20 @@ def prepare_tweet_eval(tokenizer, output_path):
         "label": [2, 0, 1, 2, 0],
     }
     ds = safe_load_dataset("tweet_eval", "sentiment", fallback_data=fallback_data)
-    ds =ds["train"].select(range(1000))
-    ds = ds.map(lambda x: {"text": clean_text(x["text"])})
-    ds = ds.map(tokenize_function, batched=True)
+    if isinstance(ds, dict) or "train" in ds:
+        reduced_splits = {}
+        for split in ds.keys():
+            reduced_splits[split] = ds[split].select(range(min(1000, len(ds[split]))))
+            reduced_splits[split] = reduced_splits[split].map(lambda x: {"text": clean_text(x["text"])})
+            reduced_splits[split] = reduced_splits[split].map(tokenize_function, batched=True)
+        ds = datasets.DatasetDict(reduced_splits)
+    else:
+        ds = ds.select(range(min(1000, len(ds))))
+        ds = ds.map(lambda x: {"text": clean_text(x["text"])})
+        ds = ds.map(tokenize_function, batched=True)
+
     ds.save_to_disk(output_path)
-    print(f" Dataset Tweet Eval salvato in {output_path}")
+    print(f"Dataset Tweet Eval salvato in {output_path}")
 
 
 def prepare_youtube(tokenizer, output_path):
