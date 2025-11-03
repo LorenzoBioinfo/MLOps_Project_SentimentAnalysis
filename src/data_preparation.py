@@ -77,4 +77,4 @@ if __name__ == "__main__":
     if args.dataset == "tweet_eval":
         prepare_tweet_eval(tokenizer, "data/processed/tweet_eval_tokenized")
     elif args.dataset == "youtube":
-        prepare_youtube(tokenizer, "data/processed/youtube_comments")
+        prepare_youtube(tokenizer, "data/processed/youtube_tokenized")
