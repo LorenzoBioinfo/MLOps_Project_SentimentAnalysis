@@ -15,7 +15,10 @@ REPORTS_DIR = "reports"
 
 def evaluate_model(model, tokenizer, dataset, dataset_name, sample_size=300):
     print(f"Valutazione su {dataset_name}")
-    subset = dataset["test"].select(range(min(sample_size, len(dataset["test"]))))
+    if "test" not in dataset:
+        subset = dataset["train"].train_test_split(test_size=0.1)
+    else:
+        subset = dataset["test"].select(range(min(sample_size, len(dataset["test"]))))
 
     texts = subset["text"]
     labels = subset["label"]
