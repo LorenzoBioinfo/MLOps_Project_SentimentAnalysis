@@ -44,11 +44,11 @@ def tokenize_function(examples):
         max_length=128,
     )
 
-tweet_tokenized = tweet_eval.map(tokenize_function, batched=True)
-youtube_tokenized = youtube.map(tokenize_function, batched=True)
+#tweet_tokenized = tweet_eval.map(tokenize_function, batched=True)
+#youtube_tokenized = youtube.map(tokenize_function, batched=True)
 
-tweet_tokenized.save_to_disk(os.path.join(PROCESSED_DIR, "tweet_eval_tokenized"))
-youtube_tokenized.save_to_disk(os.path.join(PROCESSED_DIR, "youtube_tokenized"))
+#tweet_tokenized.save_to_disk(os.path.join(PROCESSED_DIR, "tweet_eval_tokenized"))
+#youtube_tokenized.save_to_disk(os.path.join(PROCESSED_DIR, "youtube_tokenized"))
 
 def prepare_tweet_eval(tokenizer, output_path):
     print("Scarico e preparo il dataset Tweet Eval...")
