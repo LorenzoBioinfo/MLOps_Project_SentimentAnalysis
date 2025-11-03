@@ -8,6 +8,8 @@ from datasets import load_dataset, load_from_disk
 import torch
 import random
 import subprocess
+import json
+import os
 
 # Caricamento del modello e dei dati se già scaricati
 MODEL= "cardiffnlp/twitter-roberta-base-sentiment-latest"
@@ -121,6 +123,47 @@ def random_youtube_comment(request: Request):
             "result": result
         }
     )
+
+
+
+@app.get("/admin", response_class=HTMLResponse)
+async def admin_dashboard(request: Request):
+    """Pagina principale dell'area admin."""
+    metrics = None
+    metrics_path = "reports/metrics.json"
+    if os.path.exists(metrics_path):
+        with open(metrics_path, "r") as f:
+            metrics = json.load(f)
+    return templates.TemplateResponse(
+        "admin.html",
+        {"request": request, "metrics": metrics}
+    )
+
+@app.post("/admin/train")
+async def retrain_model():
+    """Lancia lo script di training."""
+    subprocess.run(["python", "src/train.py"], check=True)
+    return {"status": "Training completato"}
+
+@app.post("/admin/monitor")
+async def run_monitoring():
+    """Esegue il monitoring e aggiorna metrics.json."""
+    subprocess.run(["python", "src/monitoring.py"], check=True)
+    return {"status": "Monitoring completato"}
+
+@app.get("/admin/metrics", response_class=HTMLResponse)
+def view_metrics(request: Request):
+    """Visualizza i risultati del monitoring in forma tabellare e grafica."""
+    metrics_path = "reports/metrics.json"
+    metrics = None
+    if os.path.exists(metrics_path):
+        with open(metrics_path, "r") as f:
+            metrics = json.load(f)
+    return templates.TemplateResponse(
+        "metrics.html",
+        {"request": request, "metrics": metrics}
+    )
+
 
 
 if __name__=="__main__":

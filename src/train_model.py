@@ -5,7 +5,7 @@ from transformers import (
     TrainingArguments,
     AutoTokenizer
 )
-from datasets import load_from_disk
+from datasets import load_from_disk,concatenate_datasets
 import evaluate
 import numpy as np
 import os
@@ -24,9 +24,13 @@ def compute_metrics(eval_pred):
     f1 = metric_f1.compute(predictions=predictions, references=labels, average="weighted")
     return {"accuracy": acc["accuracy"], "f1": f1["f1"]}
 
-def train_model(sample_train_size=1000, sample_eval_size=300):
+
+def train_model(additional_data=None,sample_train_size=1000, sample_eval_size=300):
     print("Caricamento dataset Tweet eval preprocessato")
     dataset = load_from_disk(DATA_PATH)
+    if additional_data is not None:
+        print("Aggiungo dati YouTube al training set...")
+        dataset["train"] = concatenate_datasets([dataset["train"], additional_data])
 
     # 
     print(f"Riduzione dataset: {sample_train_size} per il train, {sample_eval_size} per la validazione.")
