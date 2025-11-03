@@ -2,7 +2,6 @@ from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from datasets import load_from_disk
 from sklearn.metrics import accuracy_score, f1_score, confusion_matrix
 import torch
-import numpy as np
 import json
 import os
 from src.train_model import train_model
@@ -36,22 +35,18 @@ def evaluate_model(model, tokenizer, dataset, dataset_name, sample_size=300):
 
 def retrain_on_youtube_sample():
     from datasets import load_from_disk
-    youtube_data = load_from_disk(YT_PROCESSED_PATH)["train"]
+    youtube_data = load_from_disk(YT_PATH)["train"]
 
     youtube_sample = youtube_data.shuffle(seed=42).select(range(500))
-    train_model(additional_data=youtube_sample, output_dir=MODEL_OUTPUT_PATH)
+    train_model(additional_data=youtube_sample, output_dir=MODEL_PATH)
 
 
 
-def monitor_model():
-    metrics = evaluate_model_on_youtube()
 
-    print(f"Accuracy su YouTube: {metrics['accuracy']:.3f}")
-    if metrics["accuracy"] < ACCURACY_THRESHOLD:
-        print("Performance sotto la soglia. Avvio retraining parziale...")
-        retrain_on_youtube_sample()
 
-    return metrics
+    
+
+
 
 def main():
     print("Caricamento del modello")
@@ -64,6 +59,11 @@ def main():
 
     tweet_metrics = evaluate_model(model, tokenizer, tweet_ds, "TweetEval")
     youtube_metrics = evaluate_model(model, tokenizer, youtube_ds, "YouTube Comments")
+
+    print(f"Accuracy su YouTube: {youtube_metrics['accuracy']:.3f}")
+    if youtube_metrics["accuracy"] < ACCURACY_THRESHOLD:
+        print("Performance sotto la soglia. Avvio retraining parziale...")
+        retrain_on_youtube_sample()
 
     os.makedirs(REPORTS_DIR, exist_ok=True)
     metrics_path = os.path.join(REPORTS_DIR, "metrics.json")

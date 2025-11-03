@@ -2,8 +2,7 @@
 from transformers import (
     AutoModelForSequenceClassification,
     Trainer,
-    TrainingArguments,
-    AutoTokenizer
+    TrainingArguments
 )
 from datasets import load_from_disk,concatenate_datasets
 import evaluate
