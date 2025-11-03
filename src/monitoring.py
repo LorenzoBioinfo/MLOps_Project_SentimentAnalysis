@@ -5,6 +5,7 @@ import torch
 import json
 import os
 from src.train_model import train_model
+from datasets import ClassLabel
 
 ACCURACY_THRESHOLD = 0.75
 MODEL_PATH = "models/sentiment_model"
@@ -44,6 +45,8 @@ def retrain_on_youtube_sample():
     youtube_sample = youtube_sample.remove_columns(
         [col for col in youtube_sample.column_names if col not in ["text", "label"]]
     )
+    label_class = ClassLabel(names=["negative", "neutral", "positive"])
+    youtube_sample = youtube_sample.cast_column("label", label_class)
 
     train_model(additional_data=youtube_sample, output_dir=MODEL_PATH)
 
