@@ -42,6 +42,8 @@ def tokenize_function(examples):
     )
 
 
+
+
 # ----------------------------- #
 #   PREPARAZIONE DEI DATASET    #
 # ----------------------------- #
@@ -123,6 +125,8 @@ def prepare_youtube(tokenizer, output_path):
    # ds = ds.map(tokenize_function, batched=True)
     ds.save_to_disk(output_path)
     print(f"Dataset YouTube salvato in {output_path}")
+
+
 
 
 
