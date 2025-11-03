@@ -1,3 +1,5 @@
+![CI](https://github.com/LorenzoBioinfo/MLOps_Project_SentimentAnalysis/actions/workflows/ci.yml/badge.svg)
+
 # 🧠 Sentiment Analysis MLOps Pipeline  
 **MachineInnovators Inc.** — Scalable Machine Learning for Social Reputation Monitoring  
 
