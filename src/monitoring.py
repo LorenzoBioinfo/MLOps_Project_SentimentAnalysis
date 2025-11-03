@@ -9,7 +9,7 @@ from src.train_model import train_model
 ACCURACY_THRESHOLD = 0.75
 MODEL_PATH = "models/sentiment_model"
 TWEET_PATH = "data/processed/tweet_eval_tokenized"
-YT_PATH = "data/processed/youtube_comments"
+YT_PATH = "data/processed/youtube_tokenized"
 REPORTS_DIR = "reports"
 
 
