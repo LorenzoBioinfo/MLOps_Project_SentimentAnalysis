@@ -1,6 +1,9 @@
 import pytest
 from fastapi.testclient import TestClient
 from src.app import app
+import os 
+
+os.environ["SKIP_DATA_PREP"] = "true"
 
 client = TestClient(app)
 
