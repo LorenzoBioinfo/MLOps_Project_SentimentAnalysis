@@ -43,11 +43,6 @@ def retrain_on_youtube_sample():
 
 
 
-
-    
-
-
-
 def main():
     print("Caricamento del modello")
     model = AutoModelForSequenceClassification.from_pretrained(MODEL_PATH)
