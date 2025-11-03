@@ -26,14 +26,19 @@ labels = ["negative", "neutral", "positive"]
 # TWEET EVAL
 if not os.path.exists(TWEET_PROCESSED_PATH):
     print(f"Dataset Tweet Eval non trovato in {TWEET_PROCESSED_PATH}. Lo genero...")
-    subprocess.run(["python", "src/data_preparation.py", "tweet_eval"], check=True)
+
+    if not os.environ.get("SKIP_DATA_PREP"):
+        if not os.path.exists(TWEET_PROCESSED_PATH):
+            subprocess.run(["python", "src/data_preparation.py", "tweet_eval"], check=True)
 tweet_eval = load_from_disk(TWEET_PROCESSED_PATH)
 
 
 # YOUTUBE COMMENTS
 if not os.path.exists(YT_PROCESSED_PATH):
     print(f" Dataset YouTube non trovato in {YT_PROCESSED_PATH}. Lo genero...")
-    subprocess.run(["python", "src/data_preparation.py", "youtube"], check=True)
+    if not os.environ.get("SKIP_DATA_PREP"):
+        if not os.path.exists(YT_PROCESSED_PATH):
+            subprocess.run(["python", "src/data_preparation.py", "youtube"], check=True)
 youtube_ds = load_from_disk(YT_PROCESSED_PATH)
 
 app = FastAPI(
