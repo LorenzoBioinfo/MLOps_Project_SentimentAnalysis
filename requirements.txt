@@ -12,3 +12,4 @@ matplotlib==3.9.0
 huggingface_hub==0.24.6
 black
 httpx
+python-multipart
