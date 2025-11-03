@@ -4,12 +4,11 @@ from pydantic import BaseModel
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
-from datasets import load_dataset, load_from_disk
+from datasets import  load_from_disk
 import torch
 import random
 import subprocess
 import json
-import os
 
 # Caricamento del modello e dei dati se già scaricati
 MODEL= "cardiffnlp/twitter-roberta-base-sentiment-latest"
@@ -38,8 +37,7 @@ if not os.path.exists(YT_PROCESSED_PATH):
 youtube_ds = load_from_disk(YT_PROCESSED_PATH)
 
 app = FastAPI(
-    title="Sentiment Analysis API",
-    description="Testa il modello RoBERTa di CardiffNLP su frasi personalizzate o su esempi random dal dataset TweetEval."
+    title="Sentiment Analysis API"
 )
 templates = Jinja2Templates(directory="app_templates/")
 
@@ -59,8 +57,6 @@ def predict_sentiment(text: str):
 
 @app.get("/",response_class=HTMLResponse)
 async def home( request: Request):
-    #return "Ciao Mondo!"
-    #return {"message": "Benvenuto nell'App di MachineInnovators Inc. per la sentiment analysis. Usa /predict o /random_tweet."}
     return templates.TemplateResponse("index.html", {"request": request})
     
 @app.get("/random_tweet", response_class=HTMLResponse)
