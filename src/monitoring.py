@@ -4,7 +4,7 @@ from sklearn.metrics import accuracy_score, f1_score, confusion_matrix
 import torch
 import json
 import os
-from train_model import train_model
+from src.train_model import train_model
 
 ACCURACY_THRESHOLD = 0.75
 MODEL_PATH = "models/sentiment_model"
