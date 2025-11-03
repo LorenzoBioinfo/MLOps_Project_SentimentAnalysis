@@ -24,7 +24,7 @@ def compute_metrics(eval_pred):
     return {"accuracy": acc["accuracy"], "f1": f1["f1"]}
 
 
-def train_model(additional_data=None,sample_train_size=1000, sample_eval_size=300):
+def train_model(additional_data=None,sample_train_size=1000, sample_eval_size=300,output_dir=OUTPUT_DIR):
     print("Caricamento dataset Tweet eval preprocessato")
     dataset = load_from_disk(DATA_PATH)
     if additional_data is not None:
@@ -64,8 +64,8 @@ def train_model(additional_data=None,sample_train_size=1000, sample_eval_size=30
 
     trainer.train()
 
-    os.makedirs(OUTPUT_DIR, exist_ok=True)
-    trainer.save_model(OUTPUT_DIR)
+    os.makedirs(output_dir, exist_ok=True)
+    trainer.save_model(output_dir)
     print(f"Modello salvato in: {OUTPUT_DIR}")
 
 if __name__ == "__main__":
