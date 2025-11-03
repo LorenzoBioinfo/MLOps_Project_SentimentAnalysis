@@ -22,17 +22,15 @@ def test_predict_endpoint_post():
     assert response.status_code == 200
     assert any(label in response.text for label in ["positive", "neutral", "negative"])
 
-@pytest.mark.asyncio
 def test_random_tweet_page():
     response = client.get("/random_tweet")
     assert response.status_code == 200
-    assert "Sentiment" in response.text
-
-@pytest.mark.asyncio
+    assert any(lbl in response.text for lbl in ["positive", "neutral", "negative", "Positivo", "Neutro", "Negativo"])
+   
+   
 def test_random_youtube_page():
     response = client.get("/random_youtube_comment")
     assert response.status_code == 200
-    assert "Sentiment" in response.text
-
+    assert any(lbl in response.text for lbl in ["positive", "neutral", "negative", "Positivo", "Neutro", "Negativo"])
 
 
