@@ -5,7 +5,9 @@ import torch
 import numpy as np
 import json
 import os
+from src.train_model import train_model
 
+ACCURACY_THRESHOLD = 0.75
 MODEL_PATH = "models/sentiment_model"
 TWEET_PATH = "data/processed/tweet_eval_tokenized"
 YT_PATH = "data/processed/youtube_comments"
@@ -31,6 +33,26 @@ def evaluate_model(model, tokenizer, dataset, dataset_name, sample_size=300):
     print(f"{dataset_name} — Accuracy: {acc:.3f}, F1: {f1:.3f}")
     return {"dataset": dataset_name, "accuracy": acc, "f1": f1, "confusion_matrix": cm}
 
+
+def retrain_on_youtube_sample():
+    from datasets import load_from_disk
+    youtube_data = load_from_disk(YT_PROCESSED_PATH)["train"]
+
+    youtube_sample = youtube_data.shuffle(seed=42).select(range(500))
+    train_model(additional_data=youtube_sample, output_dir=MODEL_OUTPUT_PATH)
+
+
+
+def monitor_model():
+    metrics = evaluate_model_on_youtube()
+
+    print(f"Accuracy su YouTube: {metrics['accuracy']:.3f}")
+    if metrics["accuracy"] < ACCURACY_THRESHOLD:
+        print("Performance sotto la soglia. Avvio retraining parziale...")
+        retrain_on_youtube_sample()
+
+    return metrics
+
 def main():
     print("Caricamento del modello")
     model = AutoModelForSequenceClassification.from_pretrained(MODEL_PATH)
@@ -51,6 +73,8 @@ def main():
         json.dump(results, f, indent=4)
 
     print(f"Risultati salvati in: {metrics_path}")
+
+
 
 if __name__ == "__main__":
     main()
