@@ -96,10 +96,31 @@ def prepare_youtube(tokenizer, output_path):
         "Sentiment": ["positive", "negative", "neutral", "positive", "negative"],
     }
     ds = safe_load_dataset("AmaanP314/youtube-comment-sentiment", fallback_data=fallback_data)
-    ds = ds["train"].select(range(1000))
-    ds = ds.map(lambda x: {"text": clean_text(x["CommentText"])})
-    ds = ds.map(lambda x: {"label": map_label(x["Sentiment"])})
-    ds = ds.map(tokenize_function, batched=True)
+  
+    if isinstance(ds, dict) or "train" in ds:
+        reduced_splits = {}
+        for split in ds.keys():
+            reduced_splits[split] = ds[split].select(range(min(1000, len(ds[split]))))
+            reduced_splits[split] = reduced_splits[split].map(
+                lambda x: {
+                    "text": clean_text(x["CommentText"]),
+                    "label": map_label(x["Sentiment"]),
+                }
+            )
+            reduced_splits[split] = reduced_splits[split].map(tokenize_function, batched=True)
+        ds = DatasetDict(reduced_splits)
+    else:
+ 
+        ds = ds.select(range(min(1000, len(ds))))
+        ds = ds.map(
+            lambda x: {
+                "text": clean_text(x["CommentText"]),
+                "label": map_label(x["Sentiment"]),
+            }
+        )
+  #  ds = ds.map(lambda x: {"text": clean_text(x["CommentText"])})
+  #  ds = ds.map(lambda x: {"label": map_label(x["Sentiment"])})
+   # ds = ds.map(tokenize_function, batched=True)
     ds.save_to_disk(output_path)
     print(f"Dataset YouTube salvato in {output_path}")
 
