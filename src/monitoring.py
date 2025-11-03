@@ -41,6 +41,10 @@ def evaluate_model(model, dataset, dataset_name, sample_size=300):
 def retrain_on_youtube_sample():
     youtube_data = load_from_disk(YT_PATH)["train"]
     youtube_sample = youtube_data.shuffle(seed=42).select(range(500))
+    youtube_sample = youtube_sample.remove_columns(
+        [col for col in youtube_sample.column_names if col not in ["text", "label"]]
+    )
+
     train_model(additional_data=youtube_sample, output_dir=MODEL_PATH)
 
 
