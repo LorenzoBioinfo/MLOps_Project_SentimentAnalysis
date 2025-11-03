@@ -4,7 +4,7 @@ import subprocess
 from datasets import load_from_disk
 
 TWEET_PROCESSED_PATH = "data/processed/tweet_eval_tokenized"
-YT_PROCESSED_PATH = "data/processed/youtube_comments"
+YT_PROCESSED_PATH = "data/processed/youtube_tokenized"
 
 def run_data_preparation(dataset_name):
     """Esegue lo script di data preparation per il dataset richiesto."""
