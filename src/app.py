@@ -66,8 +66,10 @@ async def home( request: Request):
     
 @app.get("/random_tweet", response_class=HTMLResponse)
 def random_tweet(request: Request):
-    sample = random.choice(tweet_eval["test"])
+  #  sample = random.choice(tweet_eval["test"])
+    sample = tweet_eval["test"][random.randrange(len(tweet_eval["test"]))]
     text = sample["text"] if "text" in sample else tokenizer.decode(sample["input_ids"], skip_special_tokens=True)
+    
     result = predict_sentiment(text)
 
     
