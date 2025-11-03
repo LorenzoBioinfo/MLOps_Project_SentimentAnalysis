@@ -24,6 +24,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install flake8 pytest
+        
+      - name: Format code with Black
+        run: |
+          black --line-length 100 src tests
 
       - name: Lint with flake8
         run: |
