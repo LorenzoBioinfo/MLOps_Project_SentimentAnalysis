@@ -79,7 +79,7 @@ def prepare_tweet_eval(tokenizer, output_path):
             reduced_splits[split] = ds[split].select(range(min(1000, len(ds[split]))))
             reduced_splits[split] = reduced_splits[split].map(lambda x: {"text": clean_text(x["text"])})
             reduced_splits[split] = reduced_splits[split].map(tokenize_function, batched=True)
-        ds = datasets.DatasetDict(reduced_splits)
+        ds = DatasetDict(reduced_splits)
     else:
         ds = ds.select(range(min(1000, len(ds))))
         ds = ds.map(lambda x: {"text": clean_text(x["text"])})
