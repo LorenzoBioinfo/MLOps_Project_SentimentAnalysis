@@ -24,6 +24,15 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install flake8 pytest
+
+      - name: Cache Hugging Face and datasets
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/huggingface
+            ~/.cache/datasets
+          key: ${{ runner.os }}-hf-${{ hashFiles('requirements.txt') }}
+
       - name: Prepare processed data
         run: |
           mkdir -p data/processed
