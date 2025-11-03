@@ -3,7 +3,10 @@ from transformers import AutoTokenizer
 import argparse
 import re
 import os
-from huggingface_hub import configure_http_backend
+from huggingface_hub import configure_http_backend, HTTPBackend
+
+
+
 
 MODEL_NAME = "cardiffnlp/twitter-roberta-base-sentiment-latest"
 PROCESSED_DIR = "data/processed/"
@@ -61,7 +64,7 @@ def prepare_tweet_eval(tokenizer, output_path):
 
 def prepare_youtube(tokenizer, output_path):
     print("Scarico e preparo il dataset YouTube Comments...")
-    configure_http_backend(timeout=60) 
+    configure_http_backend(HTTPBackend(timeout=60))
     ds = load_dataset("AmaanP314/youtube-comment-sentiment")
     ds = ds.map(lambda x: {"text": clean_text(x["CommentText"])})
     ds = ds.map(lambda x: {"label": map_label(x["Sentiment"])})
