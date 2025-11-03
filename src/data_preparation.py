@@ -73,7 +73,7 @@ def prepare_tweet_eval(tokenizer, output_path):
         "label": [2, 0, 1, 2, 0],
     }
     ds = safe_load_dataset("tweet_eval", "sentiment", fallback_data=fallback_data)
-    ds = ds.select(range(1000))
+    ds =ds["train"].select(range(1000))
     ds = ds.map(lambda x: {"text": clean_text(x["text"])})
     ds = ds.map(tokenize_function, batched=True)
     ds.save_to_disk(output_path)
@@ -87,7 +87,7 @@ def prepare_youtube(tokenizer, output_path):
         "Sentiment": ["positive", "negative", "neutral", "positive", "negative"],
     }
     ds = safe_load_dataset("AmaanP314/youtube-comment-sentiment", fallback_data=fallback_data)
-    ds = ds.select(range(1000))
+    ds = ds["train"].select(range(1000))
     ds = ds.map(lambda x: {"text": clean_text(x["CommentText"])})
     ds = ds.map(lambda x: {"label": map_label(x["Sentiment"])})
     ds = ds.map(tokenize_function, batched=True)
