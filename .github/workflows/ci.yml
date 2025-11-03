@@ -27,7 +27,7 @@ jobs:
 
       - name: Lint with flake8
         run: |
-          flake8 src app.py tests --max-line-length=100 --exclude=__init__.py
+          flake8 src tests --max-line-length=100 --exclude=__init__.py
 
       - name: Run tests
         run: |
