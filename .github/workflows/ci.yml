@@ -40,6 +40,8 @@ jobs:
           mkdir -p data/processed
           python src/data_preparation.py tweet_eval
           python src/data_preparation.py youtube
+        env:
+          HF_TOKEN: ${{ secrets.HFREPO }}
         
       - name: Format code with Black
         run: |
@@ -54,3 +56,5 @@ jobs:
         run: |
           export PYTHONPATH=$PYTHONPATH:$(pwd)
           pytest --maxfail=1 --disable-warnings -q
+        env:
+          HF_TOKEN: ${{ secrets.HFREPO }}
