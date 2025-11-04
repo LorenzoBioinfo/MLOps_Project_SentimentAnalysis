@@ -8,10 +8,17 @@ from datasets import load_from_disk,concatenate_datasets
 import evaluate
 import numpy as np
 import os
+from huggingface_hub import HfApi
+
+
+hf_token = os.environ["HF_TOKEN"]
+
+#
 
 MODEL_NAME = "cardiffnlp/twitter-roberta-base-sentiment-latest"
 DATA_PATH = "data/processed/tweet_eval_tokenized"
 OUTPUT_DIR = "models/sentiment_model"
+HF_REPO = "Lordemarco/SentimentAnalysis" 
 
 def compute_metrics(eval_pred):
     """Calcola metriche standard: accuracy e F1."""
@@ -67,6 +74,7 @@ def train_model(additional_data=None,sample_train_size=1000, sample_eval_size=30
     os.makedirs(output_dir, exist_ok=True)
     trainer.save_model(output_dir)
     print(f"Modello salvato in: {OUTPUT_DIR}")
+    trainer.push_to_hub("Lordemarco/SentimentAnalysis", use_auth_token=os.environ["HF_TOKEN"])
 
 if __name__ == "__main__":
     train_model()
