@@ -58,3 +58,10 @@ jobs:
           pytest --maxfail=1 --disable-warnings -q
         env:
           HF_TOKEN: ${{ secrets.HFREPO }}
+      - name: Push app update to Hugging Face Space
+        run: |
+          git add .
+          git commit -m "Auto-deploy new version"
+          git push https://user:${HF_TOKEN}@huggingface.co/spaces/Lordemarco/sentiment-fastapi main
+        env:
+          HF_TOKEN: ${{ secrets.HFREPO }}
