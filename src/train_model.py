@@ -74,7 +74,11 @@ def train_model(additional_data=None,sample_train_size=1000, sample_eval_size=30
     os.makedirs(output_dir, exist_ok=True)
     trainer.save_model(output_dir)
     print(f"Modello salvato in: {OUTPUT_DIR}")
-    trainer.push_to_hub("Lordemarco/SentimentAnalysis")
+    
 
+    if os.getenv("HF_TOKEN"):
+        print("Pushing model to Hugging Face Hub...")
+        trainer.push_to_hub("Lordemarco/SentimentAnalysis")
+       
 if __name__ == "__main__":
     train_model()

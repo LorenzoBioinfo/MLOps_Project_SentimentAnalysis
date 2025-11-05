@@ -2,3 +2,15 @@ env
 data/raw/tweet_eval_sentiment
 data/raw/youtube-comment-sentiment
 data/processed/
+
+# Cache Hugging Face
+.cache/
+__pycache__/
+
+# File di test e temporanei
+*.log
+*.pt
+*.bin
+*.pkl
+*.zip
+.huggingface/
