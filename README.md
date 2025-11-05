@@ -36,7 +36,7 @@ L’obiettivo è permettere a MachineInnovators Inc. di monitorare la reputazion
 
 ### **Fase 3 — Deploy e Monitoraggio** 
 - Deploy su **Hugging Face**
-- Monitoraggio continuo con strumenti MLOps (MLflow)  
+- Monitoraggio continuo 
 
 ---
 
@@ -47,7 +47,7 @@ L’obiettivo è permettere a MachineInnovators Inc. di monitorare la reputazion
 | ML | FastText, Transformers, Scikit-learn |
 | CI/CD | GitHub Actions, Docker |
 | Deploy | Hugging Face Hub |
-| Monitoraggio | MLflow|
+
 
 ---
 
