@@ -53,7 +53,7 @@ jobs:
       - name: Lint with flake8
         run: |
           flake8 src tests --max-line-length=100 --exclude=__init__.py
-        continue-on-error: true
+        
 
       - name: Run tests
         run: |
@@ -75,7 +75,6 @@ jobs:
             git add .
             git commit -m "Auto-deploy new version [skip ci]" || echo "No commit needed"
             git pull https://user:${HF_TOKEN}@huggingface.co/spaces/Lordemarco/sentiment-fastapi main --rebase || true
-            git push https://user:${HF_TOKEN}@huggingface.co/spaces/Lordemarco/sentiment-fastapi main --force
           else
             echo "No changes to push "
           fi

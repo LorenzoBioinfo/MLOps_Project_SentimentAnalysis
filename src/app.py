@@ -26,7 +26,6 @@ labels = ["negative", "neutral", "positive"]
 # TWEET EVAL
 if not os.path.exists(TWEET_PROCESSED_PATH):
     print(f"Dataset Tweet Eval non trovato in {TWEET_PROCESSED_PATH}. Lo genero...")
-
     if not os.environ.get("SKIP_DATA_PREP"):
         if not os.path.exists(TWEET_PROCESSED_PATH):
             subprocess.run(["python", "src/data_preparation.py", "tweet_eval"], check=True)
@@ -66,14 +65,11 @@ async def home( request: Request):
     
 @app.get("/random_tweet", response_class=HTMLResponse)
 def random_tweet(request: Request):
-  #  sample = random.choice(tweet_eval["test"])
     sample = tweet_eval["test"][random.randrange(len(tweet_eval["test"]))]
     text = sample["text"] if "text" in sample else tokenizer.decode(sample["input_ids"], skip_special_tokens=True)
     
     result = predict_sentiment(text)
 
-    
-   
     true_label=labels[sample["label"]]
 
     return templates.TemplateResponse(
@@ -85,10 +81,6 @@ def random_tweet(request: Request):
             "result": result
         }
     )
-
-
-
-
 
 @app.get("/predict", response_class=HTMLResponse)
 def predict_page(request: Request):
@@ -145,7 +137,7 @@ async def admin_dashboard(request: Request):
 @app.post("/admin/train")
 async def retrain_model():
     """Lancia lo script di training."""
-    subprocess.run(["python", "src/train.py"], check=True)
+    subprocess.run(["python", "src/train_model.py"], check=True)
     return {"status": "Training completato"}
 
 @app.post("/admin/monitor")

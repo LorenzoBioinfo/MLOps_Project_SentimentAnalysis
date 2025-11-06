@@ -42,8 +42,6 @@ def tokenize_function(examples):
     )
 
 
-
-
 # ----------------------------- #
 #   PREPARAZIONE DEI DATASET    #
 # ----------------------------- #
@@ -120,9 +118,6 @@ def prepare_youtube(tokenizer, output_path):
                 "label": map_label(x["Sentiment"]),
             }
         )
-  #  ds = ds.map(lambda x: {"text": clean_text(x["CommentText"])})
-  #  ds = ds.map(lambda x: {"label": map_label(x["Sentiment"])})
-   # ds = ds.map(tokenize_function, batched=True)
     ds.save_to_disk(output_path)
     print(f"Dataset YouTube salvato in {output_path}")
 
@@ -134,7 +129,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Prepara dataset per sentiment analysis.")
     parser.add_argument("dataset", choices=["tweet_eval", "youtube"], help="Nome del dataset da preparare.")
     args = parser.parse_args()
-
     if args.dataset == "tweet_eval":
         prepare_tweet_eval(tokenizer, os.path.join(PROCESSED_DIR, "tweet_eval_tokenized"))
     elif args.dataset == "youtube":
