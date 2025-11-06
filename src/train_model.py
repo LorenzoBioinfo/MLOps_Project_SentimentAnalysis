@@ -8,7 +8,6 @@ from datasets import load_from_disk,concatenate_datasets
 import evaluate
 import numpy as np
 import os
-from huggingface_hub import HfApi
 
 
 hf_token = os.environ["HF_TOKEN"]
@@ -39,7 +38,7 @@ def train_model(additional_data=None,sample_train_size=1000, sample_eval_size=30
         dataset["train"] = concatenate_datasets([dataset["train"], additional_data])
 
     # 
-    print(f"Riduzione dataset: {sample_train_size} per il train, {sample_eval_size} per la validazione.")
+    print(f"Riduzione dataset:{sample_train_size} per il train,{sample_eval_size} per la validazione.")
     train_data = dataset["train"].select(range(min(sample_train_size, len(dataset["train"]))))
     eval_data = dataset["validation"].select(range(min(sample_eval_size, len(dataset["validation"]))))
 

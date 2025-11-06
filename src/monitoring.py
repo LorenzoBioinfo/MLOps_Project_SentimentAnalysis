@@ -16,8 +16,6 @@ REPORTS_DIR = "reports"
 
 def evaluate_model(model, dataset, dataset_name, sample_size=300):
     print(f"Valutazione su {dataset_name}")
-
-    # Prendo il sottoinsieme dei dati
     if "test" in dataset:
         subset = dataset["test"].select(range(min(sample_size, len(dataset["test"]))))
     else:

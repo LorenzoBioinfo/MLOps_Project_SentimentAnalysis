@@ -17,7 +17,7 @@ def cleanup_metrics():
 
 
 def test_monitoring_creates_metrics():
-    """Verifica che il monitoring crei correttamente il file metrics.json e contenga i dati previsti."""
+    """Verifica che il monitoring crei il file metrics.json con i dati previsti."""
     main() 
 
     assert os.path.exists(METRICS_PATH), "metrics.json non è stato generato"
