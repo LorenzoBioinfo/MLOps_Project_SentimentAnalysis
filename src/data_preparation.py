@@ -46,24 +46,31 @@ def tokenize_function(examples):
 #   PREPARAZIONE DEI DATASET    #
 # ----------------------------- #
 
-def safe_load_dataset(name, config=None, max_retries=3, fallback_data=None):
+def safe_load_dataset(name, config=None, max_retries=3, wait_time=10):
     """
-    Gestisce i retry del download e crea un dataset di fallback se fallisce.
+    Tenta di scaricare un dataset con retry progressivi.
+    Se fallisce dopo tutti n tentativi, fallisce.
     """
     for attempt in range(max_retries):
         try:
+            print(f"Tentativo {attempt+1}/{max_retries} di scaricare il dataset '{name}'...")
             if config:
-                return load_dataset(name, config)
-            return load_dataset(name)
-        except Exception as e:
-            print(f"Tentativo {attempt+1}/{max_retries} fallito per {name}: {e}")
-            if attempt < max_retries - 1:
-                time.sleep(10)
+                dataset = load_dataset(name, config)
             else:
-                print(f"Errore persistente nel download {name}. Uso dataset di fallback.")
-                if fallback_data:
-                    return Dataset.from_dict(fallback_data).train_test_split(test_size=0.4)
-                raise e
+                dataset = load_dataset(name)
+            print(f"Dataset '{name}' caricato correttamente.")
+            return dataset
+        except Exception as e:
+            print(f"Errore al tentativo {attempt+1}: {e}")
+            if attempt < max_retries - 1:
+                print(f"Attendo {wait_time}s prima di riprovare...")
+                time.sleep(wait_time)
+            else:
+                print(
+                    f"Impossibile scaricare il dataset '{name}' dopo {max_retries} tentativi.\n"
+                    "Verifica la connessione Internet o il nome del dataset.\n"
+                )
+                raise
 
 
 def prepare_tweet_eval(tokenizer, output_path):

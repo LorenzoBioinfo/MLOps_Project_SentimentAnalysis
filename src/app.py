@@ -1,5 +1,5 @@
 import os
-from fastapi import FastAPI, Request, Form
+from fastapi import FastAPI, Request, Form,HTTPException,status
 from pydantic import BaseModel
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
@@ -21,24 +21,25 @@ model = AutoModelForSequenceClassification.from_pretrained(MODEL)
 
 labels = ["negative", "neutral", "positive"]
 
+def load_or_prepare_dataset(path, dataset_name):
+    """
+    Carica un dataset da disco se esiste, altrimenti lo genera eseguendo lo script di preparazione.
+    Usa la variabile d'ambiente SKIP_DATA_PREP per saltare la preparazione se impostata.
+    """
+    if not os.path.exists(path):
+        print(f"Dataset '{dataset_name}' non trovato in {path}.")
+        if not os.environ.get("SKIP_DATA_PREP"):
+            subprocess.run(["python", "src/data_preparation.py", dataset_name], check=True)
+        else:
+            print(f"Preparazione saltata per '{dataset_name}' (SKIP_DATA_PREP attivo).")
+
+    print(f"Carico il dataset '{dataset_name}' da {path}")
+    return load_from_disk(path)
 
 
-# TWEET EVAL
-if not os.path.exists(TWEET_PROCESSED_PATH):
-    print(f"Dataset Tweet Eval non trovato in {TWEET_PROCESSED_PATH}. Lo genero...")
-    if not os.environ.get("SKIP_DATA_PREP"):
-        if not os.path.exists(TWEET_PROCESSED_PATH):
-            subprocess.run(["python", "src/data_preparation.py", "tweet_eval"], check=True)
-tweet_eval = load_from_disk(TWEET_PROCESSED_PATH)
+tweet_eval = load_or_prepare_dataset(TWEET_PROCESSED_PATH, "tweet_eval")
+youtube_ds = load_or_prepare_dataset(YT_PROCESSED_PATH, "youtube")
 
-
-# YOUTUBE COMMENTS
-if not os.path.exists(YT_PROCESSED_PATH):
-    print(f" Dataset YouTube non trovato in {YT_PROCESSED_PATH}. Lo genero...")
-    if not os.environ.get("SKIP_DATA_PREP"):
-        if not os.path.exists(YT_PROCESSED_PATH):
-            subprocess.run(["python", "src/data_preparation.py", "youtube"], check=True)
-youtube_ds = load_from_disk(YT_PROCESSED_PATH)
 
 app = FastAPI(
     title="Sentiment Analysis API"
@@ -120,44 +121,58 @@ def random_youtube_comment(request: Request):
     )
 
 
+ADMIN_API_KEY = os.getenv("ADMIN_API_KEY")
+if not ADMIN_API_KEY:
+    raise RuntimeError(
+        "Variabile d'ambiente ADMIN_API_KEY non impostata!\n"
+        "Impostala prima di avviare l'app, ad esempio:\n"
+        "  export ADMIN_API_KEY='la_tua_chiave_super_segreta'\n"
+        "Oppure inseriscila nel file .env"
+    )
+
+def verify_api_key(request: Request):
+    """Verifica la presenza e la validità della chiave API nell'header."""
+    client_key = request.headers.get("x-api-key")
+    if client_key != ADMIN_API_KEY:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Accesso non autorizzato.")
+
 
 @app.get("/admin", response_class=HTMLResponse)
 async def admin_dashboard(request: Request):
-    """Pagina principale dell'area admin."""
-    metrics = None
+    verify_api_key(request)
     metrics_path = "reports/metrics.json"
+    metrics = None
     if os.path.exists(metrics_path):
         with open(metrics_path, "r") as f:
             metrics = json.load(f)
-    return templates.TemplateResponse(
-        "admin.html",
-        {"request": request, "metrics": metrics}
-    )
+    return templates.TemplateResponse("admin.html", {"request": request, "metrics": metrics})
+
 
 @app.post("/admin/train")
-async def retrain_model():
-    """Lancia lo script di training."""
+async def retrain_model(request: Request):
+    verify_api_key(request)
     subprocess.run(["python", "src/train_model.py"], check=True)
     return {"status": "Training completato"}
 
+
 @app.post("/admin/monitor")
-async def run_monitoring():
-    """Esegue il monitoring e aggiorna metrics.json."""
+async def run_monitoring(request: Request):
+    verify_api_key(request)
     subprocess.run(["python", "src/monitoring.py"], check=True)
     return {"status": "Monitoring completato"}
 
+
 @app.get("/admin/metrics", response_class=HTMLResponse)
-def view_metrics(request: Request):
-    """Visualizza i risultati del monitoring in forma tabellare e grafica."""
+async def view_metrics(request: Request):
+    verify_api_key(request)
     metrics_path = "reports/metrics.json"
     metrics = None
     if os.path.exists(metrics_path):
         with open(metrics_path, "r") as f:
             metrics = json.load(f)
-    return templates.TemplateResponse(
-        "metrics.html",
-        {"request": request, "metrics": metrics}
-    )
+    return templates.TemplateResponse("metrics.html", {"request": request, "metrics": metrics})
 
 
 

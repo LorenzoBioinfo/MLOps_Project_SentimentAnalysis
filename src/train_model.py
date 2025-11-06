@@ -8,11 +8,19 @@ from datasets import load_from_disk,concatenate_datasets
 import evaluate
 import numpy as np
 import os
+import sys
 
 
-hf_token = os.environ["HF_TOKEN"]
-
-#
+hf_token = os.getenv("HF_TOKEN")
+if hf_token is None or hf_token.strip() == "":
+    print(
+        "Errore: variabile d'ambiente HF_TOKEN non trovata.\n"
+        "Per risolvere, imposta il tuo token Hugging Face con uno dei seguenti metodi:\n"
+        "  • Esporta la variabile: export HF_TOKEN='tuo_token'\n"
+        "  • Oppure passa come argomento al programma: python train_model.py --hf_token <token>\n"
+        "Puoi ottenere il tuo token su https://huggingface.co/settings/tokens"
+    )
+    sys.exit(1)
 
 MODEL_NAME = "cardiffnlp/twitter-roberta-base-sentiment-latest"
 DATA_PATH = "data/processed/tweet_eval_tokenized"
