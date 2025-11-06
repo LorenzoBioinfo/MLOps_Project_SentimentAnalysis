@@ -75,11 +75,8 @@ def safe_load_dataset(name, config=None, max_retries=3, wait_time=10):
 
 def prepare_tweet_eval(tokenizer, output_path):
     print("Scarico e preparo il dataset Tweet Eval...")
-    fallback_data = {
-        "text": ["I love this!", "This is bad", "Just okay", "Great!", "Terrible experience"],
-        "label": [2, 0, 1, 2, 0],
-    }
-    ds = safe_load_dataset("tweet_eval", "sentiment", fallback_data=fallback_data)
+
+    ds = safe_load_dataset("tweet_eval", "sentiment")
     if isinstance(ds, dict) or "train" in ds:
         reduced_splits = {}
         for split in ds.keys():
@@ -98,11 +95,8 @@ def prepare_tweet_eval(tokenizer, output_path):
 
 def prepare_youtube(tokenizer, output_path):
     print("📥 Scarico e preparo il dataset YouTube Comments...")
-    fallback_data = {
-        "CommentText": ["Amazing video!", "I hated this", "Not bad", "Loved it", "Awful content"],
-        "Sentiment": ["positive", "negative", "neutral", "positive", "negative"],
-    }
-    ds = safe_load_dataset("AmaanP314/youtube-comment-sentiment", fallback_data=fallback_data)
+
+    ds = safe_load_dataset("AmaanP314/youtube-comment-sentiment")
   
     if isinstance(ds, dict) or "train" in ds:
         reduced_splits = {}
