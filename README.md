@@ -14,7 +14,7 @@ pinned: false
 **MachineInnovators Inc.** — Scalable Machine Learning for Social Reputation Monitoring  
 
 ## 📘 Descrizione  
-Progetto dedicato all’automazione dell’**analisi del sentiment** sui social media tramite **FastText** e pratiche **MLOps**.  
+Progetto dedicato all’automazione dell’**analisi del sentiment** sui social media tramite pratiche **MLOps**.  
 L’obiettivo è permettere a MachineInnovators Inc. di monitorare la reputazione online, reagire ai cambiamenti nel sentiment degli utenti e mantenere il modello aggiornato nel tempo.  
 
 ---
@@ -39,14 +39,6 @@ L’obiettivo è permettere a MachineInnovators Inc. di monitorare la reputazion
 - Monitoraggio continuo 
 
 ---
-
-## 🛠️ Stack Tecnologico
-| Categoria | Tecnologie |
-|------------|-------------|
-| Linguaggio | Python |
-| ML | FastText, Transformers, Scikit-learn |
-| CI/CD | GitHub Actions, Docker |
-| Deploy | Hugging Face Hub |
 
 
 ---
