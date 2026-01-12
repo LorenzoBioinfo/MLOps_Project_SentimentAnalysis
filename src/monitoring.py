@@ -68,8 +68,7 @@ def main():
     youtube_metrics = evaluate_model(model, youtube_ds, "YouTube Comments")
 
     print(f"Accuracy su YouTube: {youtube_metrics['accuracy']:.3f}")
-    #if youtube_metrics["accuracy"] < ACCURACY_THRESHOLD:
-    if 0.5< ACCURACY_THRESHOLD:
+    if youtube_metrics["accuracy"] < ACCURACY_THRESHOLD:
         print("Performance sotto la soglia. Avvio retraining parziale...")
         retrain_on_youtube_sample()
 
