@@ -1,5 +1,6 @@
 env
 .env
+data
 data/raw/tweet_eval_sentiment
 data/raw/youtube-comment-sentiment
 data/processed/

@@ -38,7 +38,7 @@ def compute_metrics(eval_pred):
     return {"accuracy": acc["accuracy"], "f1": f1["f1"]}
 
 
-def train_model(additional_data=None,sample_train_size=8000, sample_eval_size=1000,output_dir=OUTPUT_DIR):
+def train_model(additional_data=None,sample_train_size=1000, sample_eval_size=1000,output_dir=OUTPUT_DIR):
     print("Caricamento dataset Tweet eval preprocessato")
     dataset = load_from_disk(DATA_PATH)
     if additional_data is not None:
@@ -55,10 +55,10 @@ def train_model(additional_data=None,sample_train_size=8000, sample_eval_size=10
     # Parametri training
     training_args = TrainingArguments(
         output_dir=OUTPUT_DIR,
-        num_train_epochs=1,
-        per_device_train_batch_size=16,
-        per_device_eval_batch_size=32,
-        evaluation_strategy="epoch",
+        num_train_epochs=2,
+        per_device_train_batch_size=8,
+        per_device_eval_batch_size=16,
+        eval_strategy="epoch",
         save_strategy="epoch",
         logging_dir="./logs",
         logging_steps=10,

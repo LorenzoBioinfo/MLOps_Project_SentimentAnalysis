@@ -5,4 +5,4 @@ dataset.save_to_disk("/workspaces/MLOps_Project_SentimentAnalysis/data/raw/tweet
 
 
 dataset2 = load_dataset("AmaanP314/youtube-comment-sentiment")
-dataset2.save_to_disk("/workspaces/MLOps_Project_SentimentAnalysis/data/youtube-comment-sentiment")
+dataset2.save_to_disk("/workspaces/MLOps_Project_SentimentAnalysis/data/raw/youtube-comment-sentiment")
