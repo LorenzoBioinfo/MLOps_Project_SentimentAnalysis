@@ -6,7 +6,7 @@ import json
 import os
 import threading
 from prometheus_client import start_http_server, Gauge
-from train_model import train_model
+from src.train_model import train_model
 import time
 
 # CONFIG
