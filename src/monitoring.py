@@ -128,8 +128,10 @@ def main():
 
     results = {"TweetEval": tweet_metrics, "YouTube": youtube_metrics}
     try:
-        all_results = json.load(open(metrics_path))
-    except:
+        with open(metrics_path, "r") as f:
+            all_results = json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError) as e:
+        print(f"[Monitoring] Nessun file metrics.json presente o file corrotto: {e}")
         all_results = []
     all_results.append(results)
 
