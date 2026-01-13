@@ -112,8 +112,8 @@ def main():
     tweet_metrics = evaluate_model(model, tweet_ds, "TweetEval")
     youtube_metrics = evaluate_model(model, youtube_ds, "YouTube Comments")
 
-    # Aggiorna metriche Prometheus
-    update_metrics(tweet_metrics, youtube_metrics)
+   
+   
 
     # Alerting e retraining
     if youtube_metrics["accuracy"] < ACCURACY_THRESHOLD:
@@ -127,13 +127,21 @@ def main():
     metrics_path = os.path.join(REPORTS_DIR, "metrics.json")
 
     results = {"TweetEval": tweet_metrics, "YouTube": youtube_metrics}
+    all_results = []
     try:
         with open(metrics_path, "r") as f:
             all_results = json.load(f)
-    except (FileNotFoundError, json.JSONDecodeError) as e:
-        print(f"[Monitoring] Nessun file metrics.json presente o file corrotto: {e}")
-        all_results = []
+    except FileNotFoundError:
+        print(f"[Monitoring] Nessun file metrics.json trovato, ne creo uno nuovo.")
+
     all_results.append(results)
+
+    # Aggiorna metriche Prometheus
+    last_run = all_results[-1]
+    update_metrics(
+    tweet_metrics=last_run["TweetEval"],
+    youtube_metrics=last_run["YouTube"]
+    )
 
     with open(metrics_path, "w") as f:
         json.dump(all_results, f, indent=4)
