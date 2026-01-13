@@ -132,7 +132,7 @@ def main():
         with open(metrics_path, "r") as f:
             all_results = json.load(f)
     except FileNotFoundError:
-        print(f"[Monitoring] Nessun file metrics.json trovato, ne creo uno nuovo.")
+        print("[Monitoring] Nessun file metrics.json trovato, ne creo uno nuovo.")
 
     all_results.append(results)
 
