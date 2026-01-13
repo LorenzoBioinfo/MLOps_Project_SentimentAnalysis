@@ -1,0 +1,62 @@
+services:
+  data-prep:
+    build: .
+    container_name: data-prep
+    command: >
+      sh -c "
+        python src/download.py &&
+        python src/data_preparation.py tweet_eval &&
+        python src/data_preparation.py youtube
+      "
+    volumes:
+      - ./data:/app/data
+
+  monitoring:
+    build:
+      context: .
+      dockerfile: Dockerfile.monitoring
+    container_name: monitoring
+    environment:
+      HF_TOKEN: "${HF_TOKEN}"
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+      - ./reports:/app/reports
+    depends_on:
+      - data-prep
+
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    depends_on:
+      - monitoring
+
+  grafana:
+    image: grafana/grafana-enterprise
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+
+  app:
+    build: .
+    container_name: sentiment-app
+    depends_on:
+      - data-prep
+      - monitoring
+    ports:
+      - "5000:8000"
+    environment:
+      HF_TOKEN: "${HF_TOKEN}"
+      ADMIN_API_KEY: "${ADMIN_API_KEY}"
+      SKIP_DATA_PREP: "1"
+    volumes:
+      - ./data:/app/data
+      - ./app_templates:/app/app_templates
+      - ./reports:/app/reports

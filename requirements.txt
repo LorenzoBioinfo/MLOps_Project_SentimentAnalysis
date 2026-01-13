@@ -17,3 +17,4 @@ evaluate
 huggingface-hub
 accelerate
 loguru
+prometheus_client

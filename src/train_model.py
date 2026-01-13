@@ -38,7 +38,7 @@ def compute_metrics(eval_pred):
     return {"accuracy": acc["accuracy"], "f1": f1["f1"]}
 
 
-def train_model(additional_data=None,sample_train_size=1000, sample_eval_size=1000,output_dir=OUTPUT_DIR):
+def train_model(additional_data=None,sample_train_size=1000, sample_eval_size=300,output_dir=OUTPUT_DIR):
     print("Caricamento dataset Tweet eval preprocessato")
     dataset = load_from_disk(DATA_PATH)
     if additional_data is not None:

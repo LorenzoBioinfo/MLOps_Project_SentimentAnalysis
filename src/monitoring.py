@@ -1,21 +1,51 @@
 from transformers import AutoModelForSequenceClassification
-from datasets import load_from_disk
-from sklearn.metrics import accuracy_score, f1_score, confusion_matrix
+from datasets import load_from_disk, ClassLabel
+from sklearn.metrics import accuracy_score, f1_score, confusion_matrix, precision_score, recall_score
 import torch
 import json
 import os
-from src.train_model import train_model
-from datasets import ClassLabel
+import threading
+from prometheus_client import start_http_server, Gauge
+from train_model import train_model
+import time
 
+# CONFIG
 ACCURACY_THRESHOLD = 0.75
 MODEL_PATH = "models/sentiment_model"
 TWEET_PATH = "data/processed/tweet_eval_tokenized"
 YT_PATH = "data/processed/youtube_tokenized"
 REPORTS_DIR = "reports"
+PROMETHEUS_PORT = 8000
 
+# Flag per test/CI
+RUNNING_CI = os.getenv("RUNNING_CI") == "1"
 
+#  PROMETHEUS METRICS 
+accuracy_gauge = Gauge("model_accuracy", "Accuracy del modello", ["dataset"])
+f1_gauge = Gauge("model_f1", "F1-score del modello", ["dataset"])
+precision_gauge = Gauge("model_precision", "Precision del modello", ["dataset"])
+recall_gauge = Gauge("model_recall", "Recall del modello", ["dataset"])
+
+def expose_metrics(port=PROMETHEUS_PORT):
+    """Avvia un server HTTP Prometheus in background"""
+    start_http_server(port)
+    print(f"[Prometheus] Metrics server running at http://localhost:{port}/metrics")
+
+def update_metrics(tweet_metrics, youtube_metrics):
+    """Aggiorna i valori dei Gauge Prometheus"""
+    accuracy_gauge.labels(dataset="TweetEval").set(tweet_metrics["accuracy"])
+    f1_gauge.labels(dataset="TweetEval").set(tweet_metrics["f1"])
+    precision_gauge.labels(dataset="TweetEval").set(tweet_metrics["precision"])
+    recall_gauge.labels(dataset="TweetEval").set(tweet_metrics["recall"])
+
+    accuracy_gauge.labels(dataset="YouTube").set(youtube_metrics["accuracy"])
+    f1_gauge.labels(dataset="YouTube").set(youtube_metrics["f1"])
+    precision_gauge.labels(dataset="YouTube").set(youtube_metrics["precision"])
+    recall_gauge.labels(dataset="YouTube").set(youtube_metrics["recall"])
+
+# MODEL EVALUATION
 def evaluate_model(model, dataset, dataset_name, sample_size=300):
-    print(f"Valutazione su {dataset_name}")
+    print(f"[Monitoring] Valutazione su {dataset_name}")
     if "test" in dataset:
         subset = dataset["test"].select(range(min(sample_size, len(dataset["test"]))))
     else:
@@ -32,29 +62,43 @@ def evaluate_model(model, dataset, dataset_name, sample_size=300):
     acc = accuracy_score(labels.numpy(), preds.numpy())
     f1 = f1_score(labels.numpy(), preds.numpy(), average="weighted")
     cm = confusion_matrix(labels.numpy(), preds.numpy()).tolist()
+    precision = precision_score(labels.numpy(), preds.numpy(), average="weighted")
+    recall = recall_score(labels.numpy(), preds.numpy(), average="weighted")
 
-    print(f"{dataset_name} — Accuracy: {acc:.3f}, F1: {f1:.3f}")
-    return {"dataset": dataset_name, "accuracy": acc, "f1": f1, "confusion_matrix": cm}
+    print(f"[Monitoring] {dataset_name} — Accuracy: {acc:.3f}, F1: {f1:.3f}")
+    return {"dataset": dataset_name, "accuracy": acc, "f1": f1,
+            "precision": precision, "recall": recall, "confusion_matrix": cm}
 
+# RETRAINING WITH YOUTUBE DATA
 def retrain_on_youtube_sample():
+    print("[Monitoring] Preparazione retraining dati YouTube...")
     youtube_data = load_from_disk(YT_PATH)["train"]
     youtube_sample = youtube_data.shuffle(seed=42).select(range(500))
     youtube_sample = youtube_sample.remove_columns(
-       [col for col in youtube_sample.column_names if col not in ["text", "label"]]
-        )
+        [col for col in youtube_sample.column_names if col not in ["text", "label"]]
+    )
     label_class = ClassLabel(names=["negative", "neutral", "positive"])
     youtube_sample = youtube_sample.cast_column("label", label_class)
     train_model(additional_data=youtube_sample, output_dir=MODEL_PATH)
 
+# ALERTING 
+def send_alert(message):
+    """Alert semplice: stampa su console"""
+    print(f"[ALERT] {message}")
 
-
+#_____MAIN______
 def main():
-    print("Caricamento del modello")
+    
+    threading.Thread(target=lambda: expose_metrics(PROMETHEUS_PORT), daemon=True).start()
 
-    if os.path.exists(MODEL_PATH):
+    print("[Monitoring] Caricamento del modello")
+    config_path = os.path.join(MODEL_PATH, "config.json")
+
+    if os.path.exists(config_path):
+        print("[Monitoring] Carico modello locale addestrato")
         model = AutoModelForSequenceClassification.from_pretrained(MODEL_PATH)
     else:
-        print("Modello locale non trovato. Uso modello pre-addestrato di default.")
+        print("[Monitoring] Modello locale non valido o assente. Uso modello pre-addestrato.")
         model = AutoModelForSequenceClassification.from_pretrained(
             "cardiffnlp/twitter-roberta-base-sentiment-latest"
         )
@@ -67,20 +111,34 @@ def main():
     tweet_metrics = evaluate_model(model, tweet_ds, "TweetEval")
     youtube_metrics = evaluate_model(model, youtube_ds, "YouTube Comments")
 
-    print(f"Accuracy su YouTube: {youtube_metrics['accuracy']:.3f}")
-    if youtube_metrics["accuracy"] < ACCURACY_THRESHOLD:
-        print("Performance sotto la soglia. Avvio retraining parziale...")
-        retrain_on_youtube_sample()
+    # Aggiorna metriche Prometheus
+    update_metrics(tweet_metrics, youtube_metrics)
 
+    # Alerting e retraining
+    if youtube_metrics["accuracy"] < ACCURACY_THRESHOLD:
+        send_alert(f"Performance YouTube sotto soglia: {youtube_metrics['accuracy']:.3f}")
+        if not RUNNING_CI:
+            print("[Monitoring] Avvio retraining parziale...")
+            retrain_on_youtube_sample()
+
+    # Salvataggio storico JSON
     os.makedirs(REPORTS_DIR, exist_ok=True)
     metrics_path = os.path.join(REPORTS_DIR, "metrics.json")
 
     results = {"TweetEval": tweet_metrics, "YouTube": youtube_metrics}
+    try:
+        all_results = json.load(open(metrics_path))
+    except:
+        all_results = []
+    all_results.append(results)
+
     with open(metrics_path, "w") as f:
-        json.dump(results, f, indent=4)
+        json.dump(all_results, f, indent=4)
 
-    print(f"Risultati salvati in: {metrics_path}")
-
+    print(f"[Monitoring] Risultati salvati in: {metrics_path}")
+    print("[Monitoring] Monitoring attivo. In attesa di scrape Prometheus...")
+    while True:
+        time.sleep(60)
 
 if __name__ == "__main__":
     main()
