@@ -5,10 +5,9 @@ import re
 import os
 import time
 
-
 MODEL_NAME = "cardiffnlp/twitter-roberta-base-sentiment-latest"
 PROCESSED_DIR = "data/processed/"
-
+ 
 os.makedirs(PROCESSED_DIR, exist_ok=True)
 
 
@@ -127,10 +126,22 @@ def prepare_youtube(tokenizer, output_path):
 
 
 if __name__ == "__main__":
+ 
+
     parser = argparse.ArgumentParser(description="Prepara dataset per sentiment analysis.")
     parser.add_argument("dataset", choices=["tweet_eval", "youtube"], help="Nome del dataset da preparare.")
+    parser.add_argument(
+        "--output_dir",
+        type=str,
+        default="data/processed", 
+        help="Directory dove salvare i dataset preprocessati"
+    )
     args = parser.parse_args()
+
+ 
+    output_base = args.output_dir
+
     if args.dataset == "tweet_eval":
-        prepare_tweet_eval(tokenizer, os.path.join(PROCESSED_DIR, "tweet_eval_tokenized"))
+        prepare_tweet_eval(tokenizer, os.path.join(output_base, "tweet_eval_tokenized"))
     elif args.dataset == "youtube":
-        prepare_youtube(tokenizer, os.path.join(PROCESSED_DIR, "youtube_tokenized"))
+        prepare_youtube(tokenizer, os.path.join(output_base, "youtube_tokenized"))

@@ -11,10 +11,11 @@ import time
 
 # CONFIG
 ACCURACY_THRESHOLD = 0.75
-MODEL_PATH = "models/sentiment_model"
-TWEET_PATH = "data/processed/tweet_eval_tokenized"
-YT_PATH = "data/processed/youtube_tokenized"
-REPORTS_DIR = "reports"
+BASE_DIR = os.getenv("BASE_DIR", ".")
+MODEL_PATH = f"{BASE_DIR}/models/sentiment_model"
+TWEET_PATH = f"{BASE_DIR}/data/processed/tweet_eval_tokenized"
+YT_PATH = f"{BASE_DIR}/data/processed/youtube_tokenized"
+REPORTS_DIR = f"{BASE_DIR}/reports"
 PROMETHEUS_PORT = 8000
 
 # Flag per test/CI

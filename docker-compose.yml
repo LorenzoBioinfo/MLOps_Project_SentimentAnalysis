@@ -4,9 +4,9 @@ services:
     container_name: data-prep
     command: >
       sh -c "
-        python src/download.py &&
-        python src/data_preparation.py tweet_eval &&
-        python src/data_preparation.py youtube
+        python src/download_data.py /app/data/raw &&
+        python src/data_preparation.py tweet_eval --output_dir /app/data/processed &&
+        python src/data_preparation.py youtube --output_dir /app/data/processed
       "
     volumes:
       - ./data:/app/data
@@ -17,14 +17,22 @@ services:
       dockerfile: Dockerfile.monitoring
     container_name: monitoring
     environment:
+      BASE_DIR: "/app"
       HF_TOKEN: "${HF_TOKEN}"
-    ports:
-      - "8000:8000"
     volumes:
       - ./data:/app/data
-      - ./reports:/app/reports
-    depends_on:
-      - data-prep
+    ports:
+      - "8000:8000"
+    command: >
+      sh -c "
+        echo 'Attendo dataset...';
+        while [ ! -d /app/data/processed/tweet_eval_tokenized ]; do
+            sleep 2;
+        done
+        python src/monitoring.py
+      "
+
+    
 
   prometheus:
     image: prom/prometheus
@@ -33,14 +41,18 @@ services:
       - "9090:9090"
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
     depends_on:
       - monitoring
+    
 
   grafana:
     image: grafana/grafana-enterprise
     container_name: grafana
     ports:
       - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
     depends_on:
       - prometheus
 
@@ -56,7 +68,22 @@ services:
       HF_TOKEN: "${HF_TOKEN}"
       ADMIN_API_KEY: "${ADMIN_API_KEY}"
       SKIP_DATA_PREP: "1"
+      BASE_DIR: "/app"
     volumes:
       - ./data:/app/data
       - ./app_templates:/app/app_templates
       - ./reports:/app/reports
+    command: >
+      sh -c "
+        echo '[App] Attendo dataset...';
+        while [ ! -d /app/data/processed/tweet_eval_tokenized ]; do
+            sleep 2;
+        done
+        echo '[App] Dataset pronto, avvio FastAPI';
+        uvicorn src.app:app --host 0.0.0.0 --port 8000
+      "
+
+
+volumes:
+  prometheus-data:
+  grafana-data:

@@ -12,8 +12,10 @@ import json
 
 # Caricamento del modello e dei dati se già scaricati
 MODEL= "cardiffnlp/twitter-roberta-base-sentiment-latest"
-TWEET_PROCESSED_PATH = "data/processed/tweet_eval_tokenized"
-YT_PROCESSED_PATH = "data/processed/youtube_tokenized"
+BASE_DIR = os.getenv("BASE_DIR", ".")
+TWEET_PROCESSED_PATH = os.path.join(BASE_DIR, "data/processed/tweet_eval_tokenized")
+YT_PROCESSED_PATH = os.path.join(BASE_DIR, "data/processed/youtube_tokenized")
+
 
 tokenizer = AutoTokenizer.from_pretrained(MODEL)
 model = AutoModelForSequenceClassification.from_pretrained(MODEL)
@@ -29,7 +31,7 @@ def load_or_prepare_dataset(path, dataset_name):
     if not os.path.exists(path):
         print(f"Dataset '{dataset_name}' non trovato in {path}.")
         if not os.environ.get("SKIP_DATA_PREP"):
-            subprocess.run(["python", "src/data_preparation.py", dataset_name], check=True)
+            subprocess.run(["python", "src/data_preparation.py", dataset_name, f"{BASE_DIR}/data/processed"], check=True)
         else:
             print(f"Preparazione saltata per '{dataset_name}' (SKIP_DATA_PREP attivo).")
 
@@ -44,7 +46,7 @@ youtube_ds = load_or_prepare_dataset(YT_PROCESSED_PATH, "youtube")
 app = FastAPI(
     title="Sentiment Analysis API"
 )
-templates = Jinja2Templates(directory="app_templates/")
+templates = Jinja2Templates(directory=f"{BASE_DIR}/app_templates/")
 
 class TextInput(BaseModel):
     text: str
@@ -167,7 +169,7 @@ async def run_monitoring(request: Request):
 @app.get("/admin/metrics", response_class=HTMLResponse)
 async def view_metrics(request: Request):
     verify_api_key(request)
-    metrics_path = "reports/metrics.json"
+    metrics_path = f"{BASE_DIR}/reports/metrics.json"
     metrics = None
     if os.path.exists(metrics_path):
         with open(metrics_path, "r") as f:

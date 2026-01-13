@@ -17,11 +17,6 @@ __pycache__/
 ~/.cache/huggingface
 ~/.cache/datasets
 
-# Datasets & artifacts
-data/
-models/
-reports/
-
 # Docker
 Dockerfile*
 docker-compose.yml
