@@ -140,8 +140,11 @@ def main():
 
     print(f"[Monitoring] Risultati salvati in: {metrics_path}")
     print("[Monitoring] Monitoring attivo. In attesa di scrape Prometheus...")
-    while True:
-        time.sleep(60)
+    if not RUNNING_CI:
+        print("[Monitoring] Monitoring attivo. In attesa di scrape Prometheus...")
+        while True:
+            time.sleep(60)
+  
 
 if __name__ == "__main__":
     main()
