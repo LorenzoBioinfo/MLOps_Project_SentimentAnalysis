@@ -26,9 +26,9 @@ def test_monitoring_creates_metrics():
         all_metrics = json.load(f)
 
     metrics = all_metrics[-1] 
-
+    import pdb;pdb.set_trace()
     assert "TweetEval" in metrics, "Mancano metriche TweetEval"
-    assert "YouTube Comments" in metrics, "Mancano metriche YouTube"
+    assert "YouTube" in metrics, "Mancano metriche YouTube"
 
     for dataset_name, data in metrics.items():
         assert "accuracy" in data, f"Manca accuracy per {dataset_name}"

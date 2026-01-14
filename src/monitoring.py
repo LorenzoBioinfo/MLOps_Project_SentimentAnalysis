@@ -110,7 +110,7 @@ def main():
     youtube_ds = load_from_disk(YT_PATH)
 
     tweet_metrics = evaluate_model(model, tweet_ds, "TweetEval")
-    youtube_metrics = evaluate_model(model, youtube_ds, "YouTube Comments")
+    youtube_metrics = evaluate_model(model, youtube_ds, "YouTube")
 
    
    
