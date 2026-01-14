@@ -139,8 +139,11 @@ def main():
         for dataset_name, metrics in [("YouTube", youtube_metrics)]:
             if metrics["accuracy"] < ACCURACY_THRESHOLD or metrics["f1"] < F1_THRESHOLD:
                 alert_needed = True
-                send_alert(f"Performance {dataset_name} sotto soglia: Acc {metrics['accuracy']:.3f}, F1 {metrics['f1']:.3f}")
-
+                send_alert(
+                    f"Performance {dataset_name} sotto soglia: "
+                    f"Acc {metrics['accuracy']:.3f}, "
+                    f"F1 {metrics['f1']:.3f}"
+                )
         if alert_needed:
             failed_runs += 1
         else:
