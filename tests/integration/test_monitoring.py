@@ -3,7 +3,7 @@ import json
 import pytest
 from src.monitoring import main, REPORTS_DIR
 
-METRICS_PATH = os.path.join(REPORTS_DIR, "metrics.json")
+METRICS_PATH = os.path.join(REPORTS_DIR, "reports/metrics.json")
 
 
 @pytest.fixture(autouse=True)
@@ -26,7 +26,6 @@ def test_monitoring_creates_metrics():
         all_metrics = json.load(f)
 
     metrics = all_metrics[-1] 
-    import pdb;pdb.set_trace()
     assert "TweetEval" in metrics, "Mancano metriche TweetEval"
     assert "YouTube" in metrics, "Mancano metriche YouTube"
 
