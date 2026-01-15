@@ -9,21 +9,26 @@
       background-color: #f4f6fa;
       margin: 0;
       padding: 2rem;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
     }
     .container {
-      max-width: 800px;
-      margin: 0 auto;
+      max-width: 500px;
+      width: 100%;
       background: #fff;
       padding: 2rem;
       border-radius: 10px;
       box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+      text-align: center;
     }
     h1 {
       color: #0052cc;
-      text-align: center;
+      margin-bottom: 1.5rem;
     }
-    .section {
-      margin-top: 1.5rem;
+    form {
+      margin: 10px 0;
     }
     button, a.button {
       background-color: #0052cc;
@@ -32,54 +37,34 @@
       padding: 10px 18px;
       border-radius: 8px;
       cursor: pointer;
-      text-decoration: none;
       font-weight: 500;
-      margin-top: 10px;
-      display: inline-block;
+      width: 100%;
+      font-size: 1rem;
     }
     button:hover, a.button:hover {
       background-color: #003d99;
     }
-    .metrics-link {
-      display: block;
-      text-align: center;
-      margin-top: 1.5rem;
-      font-weight: bold;
-    }
     .back {
       display: inline-block;
-      margin-top: 2rem;
+      margin-top: 20px;
       text-decoration: none;
       color: #0052cc;
-      text-align: center;
-      width: 100%;
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>⚙️ Pannello di Amministrazione</h1>
-    <p style="text-align:center;">Gestisci il modello di analisi del sentiment, il training e il monitoring.</p>
+    <h1>🔑 Modalità Admin</h1>
 
-    <div class="section">
-      <h3>🎓 Training del Modello</h3>
-      <p>Avvia un nuovo training usando i dati <strong>TweetEval</strong>.</p>
-      <form action="/admin/train" method="post">
-        <button type="submit">Esegui Training</button>
-      </form>
-    </div>
+    <form action="/admin/train" method="post">
+      <button type="submit">Esegui Training</button>
+    </form>
 
-    <div class="section">
-      <h3>📊 Monitoring</h3>
-      <p>Analizza le performance del modello sui dataset disponibili.</p>
-      <form action="/admin/monitoring" method="post">
-        <button type="submit">Esegui Monitoring</button>
-      </form>
-
-      <a href="/admin/metrics" class="metrics-link button">📈 Visualizza Metriche</a>
-    </div>
-
-    <a class="back" href="/">← Torna alla Home</a>
+    <form action="/admin/metrics" method="get">
+  <button type="submit">Visualizza Metriche</button>
+</form>
+    <a href="/" class="back">🏠 Torna alla Home</a>
   </div>
 </body>
 </html>

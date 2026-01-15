@@ -1,0 +1,6 @@
+# Dockerfile.data-prep
+FROM sentiment-base
+
+WORKDIR /app
+COPY . .
+CMD ["python", "src/run_data_prep.py"]

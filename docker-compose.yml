@@ -1,16 +1,18 @@
 services:
   data-prep:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile.dataprep
     container_name: data-prep
     command: >
       sh -c "
-        python src/download_data.py /app/data/raw &&
-        python src/data_preparation.py tweet_eval --output_dir /app/data/processed &&
-        python src/data_preparation.py youtube --output_dir /app/data/processed
+        python /app/src/download_data.py /app/data/raw &&
+        python /app/src/data_preparation.py tweet_eval --output_dir /app/data/processed &&
+        python /app/src/data_preparation.py youtube --output_dir /app/data/processed
       "
     volumes:
       - ./data:/app/data
-
+      
   monitoring:
     build:
       context: .
@@ -57,13 +59,17 @@ services:
       - prometheus
 
   app:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: sentiment-app
-    depends_on:
-      - data-prep
-      - monitoring
+    #depends_on:
+     # - data-prep
+      #- monitoring
     ports:
       - "5000:8000"
+    env_file:
+      - .env
     environment:
       HF_TOKEN: "${HF_TOKEN}"
       ADMIN_API_KEY: "${ADMIN_API_KEY}"
