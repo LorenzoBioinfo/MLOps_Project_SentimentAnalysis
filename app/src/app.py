@@ -2,19 +2,16 @@ import os
 import random
 import subprocess
 import json
-import io
-import base64
+from pathlib import Path
 
 from fastapi import FastAPI, Request, Form, HTTPException, Depends, Cookie
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, FileResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from datasets import load_from_disk
 import torch
-import matplotlib.pyplot as plt
 from dotenv import load_dotenv
-
 
 # --------------------------------------------------
 # ENV
@@ -26,7 +23,10 @@ BASE_DIR = os.getenv("BASE_DIR", "/app")
 
 TWEET_PROCESSED_PATH = os.path.join(BASE_DIR, "data/processed/tweet_eval_tokenized")
 YT_PROCESSED_PATH = os.path.join(BASE_DIR, "data/processed/youtube_tokenized")
+
+# Ora i report del monitoring vanno in /app/reports/monitoring
 REPORTS_DIR = os.path.join(BASE_DIR, "reports")
+MONITORING_DIR = os.path.join(REPORTS_DIR, "monitoring")
 
 ADMIN_API_KEY = os.getenv("ADMIN_API_KEY")
 if not ADMIN_API_KEY:
@@ -36,8 +36,8 @@ if not ADMIN_API_KEY:
 # MODELLO
 # --------------------------------------------------
 print("[App] Caricamento modello...")
-tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME,cache_dir=f"{BASE_DIR}/huggingface_cache")
-model = AutoModelForSequenceClassification.from_pretrained(MODEL_NAME,cache_dir=f"{BASE_DIR}/huggingface_cache")
+tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, cache_dir=f"{BASE_DIR}/huggingface_cache")
+model = AutoModelForSequenceClassification.from_pretrained(MODEL_NAME, cache_dir=f"{BASE_DIR}/huggingface_cache")
 model.eval()
 
 LABELS = ["negative", "neutral", "positive"]
@@ -47,7 +47,10 @@ LABELS = ["negative", "neutral", "positive"]
 # --------------------------------------------------
 app = FastAPI(title="Sentiment Analysis API")
 templates = Jinja2Templates(directory=f"{BASE_DIR}/app_templates")
+
+# Static route per i reports (grafici)
 app.mount("/reports", StaticFiles(directory=REPORTS_DIR), name="reports")
+
 # --------------------------------------------------
 # DATASET
 # --------------------------------------------------
@@ -176,21 +179,53 @@ async def run_training(request: Request, _: bool = Depends(verify_admin)):
         }
     )
 
+# --------------------------------------------------
+# METRICHE (nuovo)
+# --------------------------------------------------
+def monitoring_run_list():
+    """Ritorna lista di run presenti in /reports/monitoring"""
+    base = Path(MONITORING_DIR)
+    if not base.exists():
+        return []
+    return sorted([p.name for p in base.iterdir() if p.is_dir()])
 
 
-# --------------------------------------------------
-# METRICHE
-# --------------------------------------------------
 @app.get("/admin/metrics", response_class=HTMLResponse)
 async def view_metrics(request: Request, _: bool = Depends(verify_admin)):
-    plot_path = os.path.join(REPORTS_DIR, "metrics_plot.jpeg")
-    if not os.path.exists(plot_path):
-        message = "Nessun grafico disponibile. Esegui prima il monitoring."
-        return templates.TemplateResponse("metrics.html", {"request": request, "message": message})
-    
-    return templates.TemplateResponse("metrics.html", {"request": request, "plot_url": "/reports/metrics_plot.jpeg"})
+    runs = monitoring_run_list()
+    return templates.TemplateResponse("metrics.html", {"request": request, "runs": runs})
 
 
+@app.get("/admin/metrics/run/{run_id}", response_class=HTMLResponse)
+async def view_run(request: Request, run_id: str, _: bool = Depends(verify_admin)):
+    run_dir = Path(MONITORING_DIR) / run_id
+
+    if not run_dir.exists():
+        raise HTTPException(status_code=404, detail="Run non trovata")
+
+    tweet_metrics = json.loads((run_dir / "tweet_metrics.json").read_text())
+    yt_metrics = json.loads((run_dir / "youtube_metrics.json").read_text())
+
+    return templates.TemplateResponse(
+        "run_detail.html",
+        {
+            "request": request,
+            "run_id": run_id,
+            "tweet": tweet_metrics,
+            "youtube": yt_metrics
+        }
+    )
+
+
+@app.get("/admin/metrics/run/{run_id}/artifact/{filename}")
+async def get_artifact(run_id: str, filename: str, _: bool = Depends(verify_admin)):
+    run_dir = Path(MONITORING_DIR) / run_id
+    file_path = run_dir / filename
+
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="Artifact non trovata")
+
+    return FileResponse(file_path)
 
 # --------------------------------------------------
 # ADMIN UNAUTHORIZED

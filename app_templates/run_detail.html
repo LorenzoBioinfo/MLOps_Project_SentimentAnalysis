@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <title>📈 Dettaglio Run {{ run_id }}</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background-color: #f4f6fa;
+      padding: 2rem;
+      color: #1f2937;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    h1, h2 {
+      text-align: center;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-top: 1rem;
+    }
+    .card {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 1rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .metrics-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+    .metrics-table th, .metrics-table td {
+      border: 1px solid #e2e8f0;
+      padding: 0.5rem;
+      text-align: center;
+    }
+    .metrics-table th {
+      background-color: #f1f5f9;
+    }
+    img {
+      max-width: 100%;
+      border-radius: 8px;
+      margin-top: 1rem;
+    }
+    .links {
+      text-align: center;
+      margin-top: 1.5rem;
+    }
+    .links a {
+      display: inline-block;
+      margin: 0 10px;
+      text-decoration: none;
+      font-weight: bold;
+      color: #0052cc;
+    }
+
+    @media (max-width: 768px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📈 Dettaglio Run: {{ run_id }}</h1>
+
+    <div class="grid">
+      <div class="card">
+        <h2>TweetEval Metrics</h2>
+        <table class="metrics-table">
+          <tr>
+            <th>Accuracy</th>
+            <th>F1</th>
+            <th>Precision</th>
+            <th>Recall</th>
+          </tr>
+          <tr>
+            <td>{{ tweet.accuracy }}</td>
+            <td>{{ tweet.f1 }}</td>
+            <td>{{ tweet.precision }}</td>
+            <td>{{ tweet.recall }}</td>
+          </tr>
+        </table>
+
+        <h3>Confusion Matrix</h3>
+        <img src="/admin/metrics/run/{{ run_id }}/artifact/tweet_confusion_matrix.jpg" alt="Confusion Matrix TweetEval">
+      </div>
+
+      <div class="card">
+        <h2>YouTube Metrics</h2>
+        <table class="metrics-table">
+          <tr>
+            <th>Accuracy</th>
+            <th>F1</th>
+            <th>Precision</th>
+            <th>Recall</th>
+          </tr>
+          <tr>
+            <td>{{ youtube.accuracy }}</td>
+            <td>{{ youtube.f1 }}</td>
+            <td>{{ youtube.precision }}</td>
+            <td>{{ youtube.recall }}</td>
+          </tr>
+        </table>
+
+        <h3>Confusion Matrix</h3>
+        <img src="/admin/metrics/run/{{ run_id }}/artifact/youtube_confusion_matrix.jpg" alt="Confusion Matrix YouTube">
+      </div>
+    </div>
+
+    <div class="card" style="margin-top: 1.5rem;">
+      <h2>Grafici Trend</h2>
+      <img src="/admin/metrics/run/{{ run_id }}/artifact/accuracy_trend.jpg" alt="Accuracy Trend">
+      <img src="/admin/metrics/run/{{ run_id }}/artifact/f1_trend.jpg" alt="F1 Trend">
+      <img src="/admin/metrics/run/{{ run_id }}/artifact/precision_trend.jpg" alt="Precision Trend">
+      <img src="/admin/metrics/run/{{ run_id }}/artifact/recall_trend.jpg" alt="Recall Trend">
+    </div>
+
+    <div class="links">
+      <a href="/admin/metrics">📌 Torna alle Runs</a>
+      <a href="/admin">🔙 Torna alla Dashboard Admin</a>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,13 +1,22 @@
 from transformers import AutoModelForSequenceClassification
-from datasets import load_from_disk, ClassLabel
-from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score, confusion_matrix
+from datasets import load_from_disk
+from sklearn.metrics import (
+    accuracy_score,
+    f1_score,
+    precision_score,
+    recall_score,
+    confusion_matrix
+)
+from prometheus_client import start_http_server, Gauge
+from datetime import datetime
+
 import torch
 import json
 import os
-import sys
 import time
 import matplotlib.pyplot as plt
-from prometheus_client import start_http_server, Gauge
+import seaborn as sns
+
 
 # ================= CONFIG =================
 ACCURACY_THRESHOLD = 0.75
@@ -15,19 +24,22 @@ F1_THRESHOLD = 0.70
 MAX_FAILED_RUNS = 3
 
 BASE_DIR = os.getenv("BASE_DIR", "/app")
+
 MODEL_PATH = f"{BASE_DIR}/models/sentiment_model"
 TWEET_PATH = f"{BASE_DIR}/data/processed/tweet_eval_tokenized"
 YT_PATH = f"{BASE_DIR}/data/processed/youtube_tokenized"
-REPORTS_DIR = f"{BASE_DIR}/reports"
 
-METRICS_FILE = f"{REPORTS_DIR}/metrics.json"
-PLOT_FILE = f"{REPORTS_DIR}/metrics_plot.jpeg"
+
+REPORTS_BASE = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "..", "..", "reports", "monitoring")
+)
 
 PROMETHEUS_PORT = 8000
 EVALUATION_INTERVAL = 3600  # 1 ora
 RUNNING_CI = os.getenv("RUNNING_CI") == "1"
 
-os.makedirs(REPORTS_DIR, exist_ok=True)
+os.makedirs(REPORTS_BASE, exist_ok=True)
+
 
 # ================= PROMETHEUS =================
 accuracy_gauge = Gauge("model_accuracy", "Accuracy", ["dataset"])
@@ -39,7 +51,7 @@ recall_gauge = Gauge("model_recall", "Recall", ["dataset"])
 def expose_metrics():
     try:
         start_http_server(PROMETHEUS_PORT)
-        print(f"[Prometheus] running on {PROMETHEUS_PORT}")
+        print(f"[Prometheus] running on port {PROMETHEUS_PORT}")
     except OSError:
         pass
 
@@ -52,15 +64,42 @@ def update_prometheus(tweet, yt):
         recall_gauge.labels(dataset=name).set(m["recall"])
 
 
+# ================= UTILITIES =================
+def create_run_dir():
+    run_id = datetime.now().strftime("run_%Y-%m-%d_%H-%M-%S")
+    run_dir = os.path.join(REPORTS_BASE, run_id)
+    os.makedirs(run_dir, exist_ok=True)
+    return run_dir
+
+
+def save_json(obj, path):
+    with open(path, "w") as f:
+        json.dump(obj, f, indent=4)
+
+
+def save_confusion_matrix(cm, title, path):
+    plt.figure(figsize=(5, 5))
+    sns.heatmap(cm, annot=True, fmt="d", cmap="Blues")
+    plt.title(title)
+    plt.xlabel("Predicted")
+    plt.ylabel("True")
+    plt.tight_layout()
+    plt.savefig(path)
+    plt.close()
+
+
 # ================= MODEL =================
 def load_model():
     if os.path.exists(os.path.join(MODEL_PATH, "config.json")):
         model = AutoModelForSequenceClassification.from_pretrained(MODEL_PATH)
+        print("[Model] Loaded fine-tuned model")
     else:
         model = AutoModelForSequenceClassification.from_pretrained(
             "cardiffnlp/twitter-roberta-base-sentiment-latest",
             cache_dir=f"{BASE_DIR}/huggingface_cache"
         )
+        print("[Model] Loaded base HF model")
+
     model.eval()
     return model
 
@@ -84,11 +123,12 @@ def evaluate_model(model, dataset, sample_size=300):
         "precision": precision_score(labels, preds, average="weighted"),
         "recall": recall_score(labels, preds, average="weighted"),
         "confusion_matrix": confusion_matrix(labels, preds).tolist(),
+        "num_samples": len(labels)
     }
 
 
-# ================= PLOT =================
-def generate_plot(history):
+# ================= PLOTS =================
+def plot_accuracy_trend(history, output_path):
     tweet_acc = [h["TweetEval"]["accuracy"] for h in history]
     yt_acc = [h["YouTube"]["accuracy"] for h in history]
 
@@ -97,20 +137,22 @@ def generate_plot(history):
     plt.figure(figsize=(10, 5))
     plt.plot(x, tweet_acc, marker="o", label="TweetEval Accuracy")
     plt.plot(x, yt_acc, marker="o", label="YouTube Accuracy")
-    plt.xlabel("Valutazioni nel tempo")
+    plt.xlabel("Evaluation run")
     plt.ylabel("Accuracy")
-    plt.title("Andamento Accuracy")
+    plt.title("Accuracy trend over time")
     plt.legend()
     plt.grid(True)
     plt.tight_layout()
-    plt.savefig(PLOT_FILE)
+    plt.savefig(output_path)
     plt.close()
-
-    print(f"[Monitoring] Grafico aggiornato → {PLOT_FILE}")
 
 
 # ================= CORE =================
 def run_single_evaluation():
+    print("[Monitoring] Starting evaluation")
+
+    run_dir = create_run_dir()
+
     model = load_model()
     tweet_ds = load_from_disk(TWEET_PATH)
     yt_ds = load_from_disk(YT_PATH)
@@ -118,20 +160,45 @@ def run_single_evaluation():
     tweet_metrics = evaluate_model(model, tweet_ds)
     yt_metrics = evaluate_model(model, yt_ds)
 
+    save_json(tweet_metrics, os.path.join(run_dir, "tweet_metrics.json"))
+    save_json(yt_metrics, os.path.join(run_dir, "youtube_metrics.json"))
+
+    save_confusion_matrix(
+        tweet_metrics["confusion_matrix"],
+        "TweetEval Confusion Matrix",
+        os.path.join(run_dir, "tweet_confusion_matrix.jpg")
+    )
+
+    save_confusion_matrix(
+        yt_metrics["confusion_matrix"],
+        "YouTube Confusion Matrix",
+        os.path.join(run_dir, "youtube_confusion_matrix.jpg")
+    )
+
+    history_file = os.path.join(REPORTS_BASE, "history.json")
     history = []
-    if os.path.exists(METRICS_FILE):
-        with open(METRICS_FILE) as f:
+
+    if os.path.exists(history_file):
+        with open(history_file) as f:
             history = json.load(f)
 
-    history.append({"TweetEval": tweet_metrics, "YouTube": yt_metrics})
+    history.append({
+        "run": os.path.basename(run_dir),
+        "TweetEval": tweet_metrics,
+        "YouTube": yt_metrics
+    })
 
-    with open(METRICS_FILE, "w") as f:
-        json.dump(history, f, indent=4)
+    save_json(history, history_file)
+
+    plot_accuracy_trend(
+        history,
+        os.path.join(run_dir, "accuracy_trend.jpg")
+    )
 
     update_prometheus(tweet_metrics, yt_metrics)
-    generate_plot(history)
 
-    print("[Monitoring] Valutazione completata")
+    print(f"[Monitoring] Evaluation completed → {run_dir}")
+    return yt_metrics
 
 
 def monitoring_loop():
@@ -139,18 +206,16 @@ def monitoring_loop():
     failed_runs = 0
 
     while True:
-        run_single_evaluation()
+        yt_metrics = run_single_evaluation()
 
-        yt = json.load(open(METRICS_FILE))[-1]["YouTube"]
-
-        if yt["accuracy"] < ACCURACY_THRESHOLD or yt["f1"] < F1_THRESHOLD:
+        if yt_metrics["accuracy"] < ACCURACY_THRESHOLD or yt_metrics["f1"] < F1_THRESHOLD:
             failed_runs += 1
-            print("[ALERT] Performance YouTube sotto soglia")
+            print("[ALERT] YouTube performance below threshold")
         else:
             failed_runs = 0
 
         if failed_runs >= MAX_FAILED_RUNS and not RUNNING_CI:
-            print("[Monitoring] Retraining parziale YouTube")
+            print("[Monitoring] Retraining trigger would happen here")
             failed_runs = 0
 
         if RUNNING_CI:

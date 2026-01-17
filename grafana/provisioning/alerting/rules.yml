@@ -1,0 +1,114 @@
+apiVersion: 1
+
+groups:
+  - name: Admin
+    folder: alert_monitoring
+    interval: 1m
+    rules:
+      - uid: bfaguyx62in7kc
+        title: "Accuracy YouTube"
+        condition: "C"
+        data:
+          - refId: A
+            datasourceUid: Prometheus
+            relativeTimeRange:
+              from: 600
+              to: 0
+            model:
+              editorMode: builder
+              expr: 'model_accuracy{dataset="YouTube"}'
+              instant: true
+              intervalMs: 1000
+              legendFormat: "__auto"
+              maxDataPoints: 43200
+              range: false
+              refId: A
+          - refId: C
+            datasourceUid: __expr__
+            relativeTimeRange:
+              from: 0
+              to: 0
+            model:
+              type: threshold
+              refId: C
+              expression: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+              conditions:
+                - type: query
+                  evaluator:
+                    type: lt
+                    params:
+                      - 75
+                  operator:
+                    type: and
+                  reducer:
+                    type: last
+                    params: []
+                  query:
+                    params:
+                      - "C"
+              datasource:
+                type: __expr__
+                uid: __expr__
+        for: 2m
+        noDataState: NoData
+        execErrState: Error
+        annotations:
+          summary: "Accuracy below 0.75"
+        isPaused: false
+        notification_settings:
+          receiver: grafana-default-email
+
+      - uid: efagv1vlas3r4c
+        title: "F1 YouTube"
+        condition: "C"
+        data:
+          - refId: A
+            datasourceUid: Prometheus
+            relativeTimeRange:
+              from: 600
+              to: 0
+            model:
+              editorMode: builder
+              expr: 'model_f1{dataset="YouTube"}'
+              instant: true
+              intervalMs: 1000
+              legendFormat: "__auto"
+              maxDataPoints: 43200
+              range: false
+              refId: A
+          - refId: C
+            datasourceUid: __expr__
+            relativeTimeRange:
+              from: 0
+              to: 0
+            model:
+              type: threshold
+              refId: C
+              expression: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+              conditions:
+                - type: query
+                  evaluator:
+                    type: lt
+                    params:
+                      - 0
+                  operator:
+                    type: and
+                  reducer:
+                    type: last
+                    params: []
+                  query:
+                    params:
+                      - "C"
+              datasource:
+                type: __expr__
+                uid: __expr__
+        for: 2m
+        noDataState: NoData
+        execErrState: Error
+        isPaused: false
+        notification_settings:
+          receiver: grafana-default-email

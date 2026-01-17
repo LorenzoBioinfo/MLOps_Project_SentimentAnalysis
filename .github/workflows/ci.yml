@@ -1,4 +1,4 @@
-name: CI - Tests & Lint
+name: CI - Tests, Lint & Deploy
 
 on:
   push:
@@ -14,7 +14,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -25,7 +25,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install flake8 pytest black
+          pip install flake8 pytest black prometheus_client requests
 
       - name: Set HuggingFace token
         run: echo "${{ secrets.HFREPO }}" > ~/.hf_token
@@ -53,7 +53,6 @@ jobs:
       - name: Lint with flake8
         run: |
           flake8 src tests --max-line-length=100 --exclude=__init__.py
-        
 
       - name: Run tests
         run: |
@@ -62,42 +61,62 @@ jobs:
         env:
           HF_TOKEN: ${{ secrets.HFREPO }}
           ADMIN_API_KEY: ${{ secrets.ADMIN_API_KEY }}
-      - name: Test Prometheus metrics endpoint
-        run: |
-          pip install prometheus_client requests
-          python - <<EOF
-          from prometheus_client import start_http_server, Gauge
-          import requests
-          import threading
-          import time
 
-          # Dummy metrics
-          g = Gauge("dummy_accuracy", "Test gauge")
-          g.set(0.9)
-          threading.Thread(target=lambda: start_http_server(9000), daemon=True).start()
-          time.sleep(1)
-          r = requests.get("http://localhost:9000/metrics")
-          if "dummy_accuracy 0.9" not in r.text:
-              raise ValueError("Prometheus endpoint non funzionante")
+      - name: Test Prometheus metrics endpoint (monitoring)
+        run: |
+          RUNNING_CI=1 python monitoring/src/monitoring.py &
+          sleep 5
+
+          if [ ! -f reports/metrics.json ]; then
+            echo "metrics.json non trovato!"
+            exit 1
+          fi
+
+          python - <<EOF
+          import requests
+          r = requests.get("http://localhost:8000/metrics")
+          if r.status_code != 200:
+              raise ValueError("Prometheus endpoint non raggiungibile")
+          if "model_accuracy" not in r.text:
+              raise ValueError("Metriche Prometheus non esposte correttamente")
           print("Prometheus metrics endpoint OK")
           EOF
 
-      - name: Configure Git identity for CI
+      - name: Build Docker images (optional)
+        run: |
+          docker compose -f docker-compose.yml build --no-cache
+
+  deploy-hf:
+    needs: build-test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Git
         run: |
           git config --global user.email "ci-bot@users.noreply.github.com"
           git config --global user.name "GitHub Actions"
 
-      - name: Push app update to Hugging Face Space
+      - name: Clone HF Space repo
         run: |
-          echo "Checking for changes before pushing..."
+          git clone https://user:${{ secrets.HFREPO }}@huggingface.co/spaces/Lordemarco/sentiment-fastapi hf_space
+
+      - name: Copy app folder to HF Space
+        run: |
+          rsync -av --delete app/ hf_space/
+
+      - name: Commit & Push if changes
+        run: |
+          cd hf_space
           if [ -n "$(git status --porcelain)" ]; then
-            echo "Changes detected — committing and pushing to Hugging Face "
             git add .
-            git commit -m "Auto-deploy new version [skip ci]" || echo "No commit needed"
-            git pull https://user:${HF_TOKEN}@huggingface.co/spaces/Lordemarco/sentiment-fastapi main --rebase || true
+            git commit -m "Auto-deploy from GitHub Actions [skip ci]"
+            git push origin main
           else
-            echo "No changes to push "
+            echo "No changes to deploy"
           fi
-        env:
-          HF_TOKEN: ${{ secrets.HFREPO }}
-          ADMIN_API_KEY: ${{ secrets.ADMIN_API_KEY }}
