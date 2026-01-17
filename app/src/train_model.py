@@ -26,6 +26,8 @@ MODEL_NAME = "cardiffnlp/twitter-roberta-base-sentiment-latest"
 DATA_PATH = "data/processed/tweet_eval_tokenized"
 OUTPUT_DIR = "models/sentiment_model"
 HF_REPO = "Lordemarco/SentimentAnalysis" 
+HF_CACHE_DIR = os.getenv("HF_CACHE_DIR", "/app/huggingface_cache")
+
 
 def compute_metrics(eval_pred):
     """Calcola metriche standard: accuracy e F1."""
@@ -50,7 +52,7 @@ def train_model(additional_data=None,sample_train_size=1000, sample_eval_size=30
     eval_data = dataset["validation"].select(range(min(sample_eval_size, len(dataset["validation"]))))
 
    
-    model = AutoModelForSequenceClassification.from_pretrained(MODEL_NAME)
+    model = AutoModelForSequenceClassification.from_pretrained(MODEL_NAME,cache_dir=HF_CACHE_DIR )
 
     # Parametri training
     training_args = TrainingArguments(

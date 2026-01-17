@@ -1,4 +1,10 @@
 services:
+  base:
+    build:
+      context: .
+      dockerfile: Dockerfile.base
+    image: sentiment-base
+    
   data-prep:
     build:
       context: ./data_prep     

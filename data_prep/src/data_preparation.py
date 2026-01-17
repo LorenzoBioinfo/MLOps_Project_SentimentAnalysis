@@ -7,7 +7,8 @@ import time
 
 MODEL_NAME = "cardiffnlp/twitter-roberta-base-sentiment-latest"
 PROCESSED_DIR = "data/processed/"
- 
+HF_CACHE_DIR = os.getenv("HF_CACHE_DIR", "/app/huggingface_cache")
+
 os.makedirs(PROCESSED_DIR, exist_ok=True)
 
 BASE_DIR = os.getenv("BASE_DIR", "/app")
@@ -30,7 +31,7 @@ def map_label(label):
     return label
 
 # Tokenizer globale
-tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME,cache_dir=f"{BASE_DIR}/huggingface_cache")
+tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME,cache_dir=HF_CACHE_DIR)
 
 def tokenize_function(examples):
     return tokenizer(

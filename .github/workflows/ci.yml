@@ -45,6 +45,7 @@ jobs:
           python data_prep/src/data_preparation.py youtube
         env:
           HF_TOKEN: ${{ secrets.HFREPO }}
+          HF_CACHE_DIR: ${{ runner.temp }}/huggingface_cache
 
       - name: Format code with Black
         run: |
@@ -61,12 +62,14 @@ jobs:
         env:
           HF_TOKEN: ${{ secrets.HFREPO }}
           ADMIN_API_KEY: ${{ secrets.ADMIN_API_KEY }}
+          HF_CACHE_DIR: ${{ runner.temp }}/huggingface_cache
 
       - name: Run Prefect flow (CI smoke test)
         run: |
           python prefect/flows.py
         env:
           HF_TOKEN: ${{ secrets.HFREPO }}
+          HF_CACHE_DIR: ${{ runner.temp }}/huggingface_cache
 
   deploy-hf:
     needs: build-test

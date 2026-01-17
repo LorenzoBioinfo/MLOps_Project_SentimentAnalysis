@@ -37,6 +37,8 @@ REPORTS_BASE = os.path.abspath(
 PROMETHEUS_PORT = 8000
 EVALUATION_INTERVAL = 3600  # 1 ora
 RUNNING_CI = os.getenv("RUNNING_CI") == "1"
+HF_CACHE_DIR = os.getenv("HF_CACHE_DIR", "/app/huggingface_cache")
+
 
 os.makedirs(REPORTS_BASE, exist_ok=True)
 
@@ -96,7 +98,7 @@ def load_model():
     else:
         model = AutoModelForSequenceClassification.from_pretrained(
             "cardiffnlp/twitter-roberta-base-sentiment-latest",
-            cache_dir=f"{BASE_DIR}/huggingface_cache"
+            cache_dir=HF_CACHE_DIR
         )
         print("[Model] Loaded base HF model")
 

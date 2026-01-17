@@ -24,9 +24,11 @@ BASE_DIR = os.getenv("BASE_DIR", "/app")
 TWEET_PROCESSED_PATH = os.path.join(BASE_DIR, "data/processed/tweet_eval_tokenized")
 YT_PROCESSED_PATH = os.path.join(BASE_DIR, "data/processed/youtube_tokenized")
 
-# Ora i report del monitoring vanno in /app/reports/monitoring
+
 REPORTS_DIR = os.path.join(BASE_DIR, "reports")
 MONITORING_DIR = os.path.join(REPORTS_DIR, "monitoring")
+HF_CACHE_DIR = os.getenv("HF_CACHE_DIR", "/app/huggingface_cache")
+
 
 ADMIN_API_KEY = os.getenv("ADMIN_API_KEY")
 if not ADMIN_API_KEY:
@@ -36,8 +38,8 @@ if not ADMIN_API_KEY:
 # MODELLO
 # --------------------------------------------------
 print("[App] Caricamento modello...")
-tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, cache_dir=f"{BASE_DIR}/huggingface_cache")
-model = AutoModelForSequenceClassification.from_pretrained(MODEL_NAME, cache_dir=f"{BASE_DIR}/huggingface_cache")
+tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, cache_dir=HF_CACHE_DIR )
+model = AutoModelForSequenceClassification.from_pretrained(MODEL_NAME, cache_dir=HF_CACHE_DIR )
 model.eval()
 
 LABELS = ["negative", "neutral", "positive"]
