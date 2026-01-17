@@ -53,7 +53,7 @@ jobs:
 
       - name: Lint with flake8
         run: |
-          flake8 app monitoring data_prep src tests --max-line-length=100 --exclude=__init__.py
+          flake8 . --max-line-length=100 --exclude=__init__.py
 
       - name: Run tests
         run: |
