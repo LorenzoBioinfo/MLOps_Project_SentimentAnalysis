@@ -1,6 +1,5 @@
 from prefect import flow, task
 from prefect_docker import DockerContainer
-from datetime import timedelta
 
 
 COMMON_VOLUMES = {
