@@ -8,6 +8,8 @@ data/processed/
 # Cache Hugging Face
 .cache/
 __pycache__/
+models
+huggingface_cache
 
 # File di test e temporanei
 *.log
