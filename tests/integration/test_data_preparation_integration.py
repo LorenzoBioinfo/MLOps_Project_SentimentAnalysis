@@ -1,5 +1,5 @@
 from unittest import mock
-import data_preparation as dp
+from data_prep.src import data_preparation as dp
 
 
 def test_prepare_tweet_eval(monkeypatch, tmp_path):
