@@ -41,18 +41,18 @@ jobs:
       - name: Prepare processed data
         run: |
           mkdir -p data/processed
-          python src/data_preparation.py tweet_eval
-          python src/data_preparation.py youtube
+          python data_prep/src/data_preparation.py tweet_eval
+          python data_prep/src/data_preparation.py youtube
         env:
           HF_TOKEN: ${{ secrets.HFREPO }}
 
       - name: Format code with Black
         run: |
-          black --line-length 100 src tests
+          black --line-length 100 app monitoring data_prep src tests
 
       - name: Lint with flake8
         run: |
-          flake8 src tests --max-line-length=100 --exclude=__init__.py
+          flake8 app monitoring data_prep src tests --max-line-length=100 --exclude=__init__.py
 
       - name: Run tests
         run: |
@@ -68,7 +68,7 @@ jobs:
           sleep 5
 
           if [ ! -f reports/metrics.json ]; then
-            echo "metrics.json non trovato!"
+            echo "❌ metrics.json non trovato!"
             exit 1
           fi
 
@@ -79,12 +79,8 @@ jobs:
               raise ValueError("Prometheus endpoint non raggiungibile")
           if "model_accuracy" not in r.text:
               raise ValueError("Metriche Prometheus non esposte correttamente")
-          print("Prometheus metrics endpoint OK")
+          print("✅ Prometheus metrics endpoint OK")
           EOF
-
-      - name: Build Docker images (optional)
-        run: |
-          docker compose -f docker-compose.yml build --no-cache
 
   deploy-hf:
     needs: build-test
