@@ -1,6 +1,4 @@
-import os
 from unittest import mock
-import pytest
 import data_preparation as dp
 
 
