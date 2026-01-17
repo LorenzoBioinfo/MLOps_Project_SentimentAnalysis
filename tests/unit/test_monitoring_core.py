@@ -1,4 +1,4 @@
-from monitoring import run_single_evaluation
+from monitoring.src.monitoring import run_single_evaluation
 
 
 def test_run_single_evaluation(monkeypatch, tmp_path):

@@ -4,7 +4,7 @@ import glob
 import pytest
 from unittest import mock
 
-import monitoring
+import monitoring.src.monitoring
 
 
 @pytest.fixture(autouse=True)

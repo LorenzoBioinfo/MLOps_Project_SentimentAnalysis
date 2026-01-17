@@ -1,6 +1,5 @@
 import os
-from monitoring import plot_accuracy_trend
-
+from monitoring.src.monitoring import plot_accuracy_trend
 
 def test_plot_accuracy_trend(tmp_path):
     history = [
