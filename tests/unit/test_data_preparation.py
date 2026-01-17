@@ -1,4 +1,4 @@
-import data_preparation as dp
+from data_prep.src import data_preparation as dp
 
 
 def test_clean_text():
