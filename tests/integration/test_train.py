@@ -1,7 +1,7 @@
 import os
 import shutil
 import pytest
-from src.train_model import train_model
+from app.src.train_model import train_model
 
 MODEL_DIR = "models/sentiment_model"
 

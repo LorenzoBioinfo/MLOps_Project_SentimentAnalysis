@@ -10,7 +10,7 @@ PROCESSED_DIR = "data/processed/"
  
 os.makedirs(PROCESSED_DIR, exist_ok=True)
 
-
+BASE_DIR = os.getenv("BASE_DIR", "/app")
 #     FUNZIONI DI SUPPORTO     
 
 def clean_text(text):
@@ -30,7 +30,7 @@ def map_label(label):
     return label
 
 # Tokenizer globale
-tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
+tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME,cache_dir=f"{BASE_DIR}/huggingface_cache")
 
 def tokenize_function(examples):
     return tokenizer(

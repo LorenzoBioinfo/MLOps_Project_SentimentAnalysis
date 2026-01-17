@@ -18,3 +18,5 @@ loguru
 prometheus_client
 python-dotenv
 black
+prefect
+prefect-docker

@@ -2,5 +2,5 @@
 FROM sentiment-base
 
 WORKDIR /app
-COPY . .
+COPY src/ src/
 CMD ["python", "src/run_data_prep.py"]

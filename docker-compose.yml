@@ -1,40 +1,48 @@
 services:
   data-prep:
     build:
-      context: .
+      context: ./data_prep     
       dockerfile: Dockerfile.dataprep
     container_name: data-prep
+    environment:
+     BASE_DIR: "/app"
+     HF_HOME: /app/huggingface_cache
     command: >
       sh -c "
-        python /app/src/download_data.py /app/data/raw &&
-        python /app/src/data_preparation.py tweet_eval --output_dir /app/data/processed &&
-        python /app/src/data_preparation.py youtube --output_dir /app/data/processed
+        python src/download_data.py /app/data/raw &&
+        python src/data_preparation.py tweet_eval --output_dir /app/data/processed &&
+        python src/data_preparation.py youtube --output_dir /app/data/processed
       "
     volumes:
       - ./data:/app/data
-      
+      - ./models:/app/models
+      - ./reports:/app/reports
+      - ./huggingface_cache:/app/huggingface_cache
+
   monitoring:
     build:
-      context: .
+      context: ./monitoring    
       dockerfile: Dockerfile.monitoring
     container_name: monitoring
     environment:
       BASE_DIR: "/app"
       HF_TOKEN: "${HF_TOKEN}"
+      HF_HOME: /app/huggingface_cache
     volumes:
       - ./data:/app/data
+      - ./models:/app/models
+      - ./reports:/app/reports
+      - ./huggingface_cache:/app/huggingface_cache
     ports:
       - "8000:8000"
     command: >
       sh -c "
-        echo 'Attendo dataset...';
+        echo 'Attendo dataset...'
         while [ ! -d /app/data/processed/tweet_eval_tokenized ]; do
             sleep 2;
         done
         python src/monitoring.py
       "
-
-    
 
   prometheus:
     image: prom/prometheus
@@ -46,7 +54,6 @@ services:
       - prometheus-data:/prometheus
     depends_on:
       - monitoring
-    
 
   grafana:
     image: grafana/grafana-enterprise
@@ -60,12 +67,9 @@ services:
 
   app:
     build:
-      context: .
+      context: ./app           
       dockerfile: Dockerfile
     container_name: sentiment-app
-    #depends_on:
-     # - data-prep
-      #- monitoring
     ports:
       - "5000:8000"
     env_file:
@@ -75,10 +79,13 @@ services:
       ADMIN_API_KEY: "${ADMIN_API_KEY}"
       SKIP_DATA_PREP: "1"
       BASE_DIR: "/app"
+      HF_HOME: /app/huggingface_cache
     volumes:
       - ./data:/app/data
-      - ./app_templates:/app/app_templates
+      - ./models:/app/models
       - ./reports:/app/reports
+      - ./app_templates:/app/app_templates
+      - ./huggingface_cache:/app/huggingface_cache
     command: >
       sh -c "
         echo '[App] Attendo dataset...';
@@ -88,7 +95,6 @@ services:
         echo '[App] Dataset pronto, avvio FastAPI';
         uvicorn src.app:app --host 0.0.0.0 --port 8000
       "
-
 
 volumes:
   prometheus-data:

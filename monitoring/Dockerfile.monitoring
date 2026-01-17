@@ -2,6 +2,7 @@
 FROM sentiment-base
 
 WORKDIR /app
-COPY . .
+COPY src/ src/
+
 
 CMD ["python", "src/monitoring.py"]

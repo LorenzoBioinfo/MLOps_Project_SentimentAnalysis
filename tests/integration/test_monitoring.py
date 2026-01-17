@@ -1,7 +1,7 @@
 import os
 import json
 import pytest
-from src.monitoring import main, REPORTS_DIR
+from monitoring.src.monitoring import main, REPORTS_DIR
 
 METRICS_PATH = os.path.join(REPORTS_DIR, "metrics.json")
 
