@@ -20,3 +20,4 @@ python-dotenv
 black
 prefect
 prefect-docker
+seaborn
