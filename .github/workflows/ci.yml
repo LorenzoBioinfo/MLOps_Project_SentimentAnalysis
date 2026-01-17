@@ -49,7 +49,7 @@ jobs:
 
       - name: Format code with Black
         run: |
-          black --line-length 100 app monitoring data_prep src tests
+          black --line-length 100 .
 
       - name: Lint with flake8
         run: |
